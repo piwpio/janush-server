@@ -1,18 +1,13 @@
 import { Injectable } from "@nestjs/common";
-import { Player } from "../classes/player/player.class";
-import { DATA_KEY } from "../models/data.model";
+import { DATA_KEY, DATA_PARAM, DataSModel } from "../models/data.model";
+import { GameService } from "./game.service";
 
 @Injectable()
 export class SocketService {
-  private static players: Player[] = [];
-
-  static addPlayer(player: Player): void {
-    this.players.push(player);
-  }
-
-  static broadcast(dataKey: DATA_KEY, data: any): void {
-    this.players.forEach(player => {
-      player.getSocket().emit(data)
+  static broadcast(dataKey: DATA_KEY, data: DataSModel): void {
+    GameService.players.forEach(player => {
+      if (data[DATA_PARAM.PLAYER_ID] !== player.id)
+        player.socket.emit(dataKey, data)
     })
   }
 }

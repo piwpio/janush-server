@@ -1,8 +1,22 @@
 export enum DATA_KEY {
-  CHANGE_NAME = 0
+  REGISTER_PLAYER = '0',
+  PLAYER_CHANGE = '1'
 }
 
-export interface Data {
-  player_id: number;
-  data: any;
+export enum DATA_PARAM {
+  PLAYER_ID = 0,
+  DATA = 1,
+  NAME = 2
+}
+
+// Data received model
+export interface DataSModel {
+  [DATA_PARAM.PLAYER_ID]?: string;
+  [DATA_PARAM.DATA]?: DataSType;
+}
+
+export type DataSType = DMRegisterPlayer;
+
+export interface DMRegisterPlayer {
+  [DATA_PARAM.NAME]: string;
 }
