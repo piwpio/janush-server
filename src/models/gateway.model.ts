@@ -1,7 +1,7 @@
 import { PARAM } from "./param.model";
 
 export enum GATEWAY {
-  GAME = 'game',
+  MAIN = 'main',
   EXCEPTION = 'exception',
   PLAYER_REGISTER = 'player_register',
   TABLE_SIT = 'table_sit',

@@ -16,7 +16,8 @@ import { UseGuards } from "@nestjs/common";
 import { UserExistsGuard } from "../guards/user-exists.guard";
 import { UserNotExistGuard } from "../guards/user-not-exist.guard";
 import { TableService } from "../services/table.service";
-import { UserOnChair } from "../guards/user-on-chair.service";
+import { UserOnChair } from "../guards/user-on-chair.guard";
+import { UserNotOnChair } from "../guards/user-not-on-chair.guard";
 
 @WebSocketGateway(8080, { cors: true })
 export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
@@ -42,11 +43,11 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     PlayersService.registerPlayer(newPlayer);
 
     const response = new Response();
-    newPlayer.addPlayerToResponse(response, DATA_TYPE.PLAYER_REGISTER);
+    newPlayer.afterRegister(response);
     SocketService.broadcast(response.get())
   }
 
-  @UseGuards(UserExistsGuard)
+  @UseGuards(UserExistsGuard, UserNotOnChair)
   @SubscribeMessage(GATEWAY.TABLE_SIT)
   tableSit(client: Socket) {
     const table = TableService.getTableInstance();
@@ -58,13 +59,11 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
   @UseGuards(UserExistsGuard, UserOnChair)
   @SubscribeMessage(GATEWAY.CHAIR_PLAYER_IS_READY)
-  tablePlayerIsReady(client: Socket, payload: PayloadChairPlayerIsReady) {
+  chairPlayerIsReady(client: Socket, payload: PayloadChairPlayerIsReady) {
     const table = TableService.getTableInstance();
     const response = new Response();
 
-    table.chair1.playerId === client.id ?
-      table.chair1.setReady(payload[PARAM.CHAIR_PLAYER_IS_READY], response):
-      table.chair2.setReady(payload[PARAM.CHAIR_PLAYER_IS_READY], response);
+    table.playerIsReady(client.id, payload[PARAM.CHAIR_PLAYER_IS_READY], response);
     SocketService.broadcast(response.get())
   }
 }

@@ -1,15 +1,13 @@
-import { RMPlayerData } from "../models/response.model";
-import { PlayerData } from "../models/player.model";
+import { RMPlayerChange } from "../models/response.model";
 import { Socket } from "socket.io";
 import { DATA_TYPE, PARAM } from "../models/param.model";
 import { PlayerId } from "../models/types.model";
 import { Response } from "./response.class";
+import { PlayerData, PlayerFullData } from "../models/player.model";
 
 export class Player {
   public readonly socket: Socket;
   public readonly id: PlayerId;
-
-  public dirtyData: PlayerData = {};
 
   // properties
   public readonly name = '';
@@ -20,14 +18,28 @@ export class Player {
     this.name = name;
   }
 
-  addPlayerToResponse(
-    response: Response,
-    dataType: DATA_TYPE.PLAYER_CHANGE | DATA_TYPE.PLAYER_REGISTER = DATA_TYPE.PLAYER_REGISTER
-  ): void {
-    response.addPlayerDataResponse(dataType, this.getData());
+  afterRegister(response: Response): void {
+    response.add({
+      [PARAM.DATA_TYPE]: DATA_TYPE.PLAYER_REGISTER,
+      [PARAM.DATA]: this.getDataFull()
+    });
   }
 
-  getData(): RMPlayerData {
+  getDataFull(): PlayerFullData {
+    return {
+      [PARAM.PLAYER_ID]: this.id,
+      [PARAM.PLAYER_NAME]: this.name
+    }
+  }
+
+  getDataForQueue(): PlayerData {
+    return {
+      [PARAM.PLAYER_ID]: this.id,
+      [PARAM.PLAYER_NAME]: this.name
+    }
+  }
+
+  getDataForChair(): PlayerData {
     return {
       [PARAM.PLAYER_ID]: this.id,
       [PARAM.PLAYER_NAME]: this.name

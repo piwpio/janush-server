@@ -1,9 +1,12 @@
 import { PARAM } from "./param.model";
+import { PlayerId } from "./types.model";
 
-export interface PlayerData {
-  [PARAM.PLAYER_NAME]?: string;
+export interface PlayerFullData {
+  [PARAM.PLAYER_ID]: PlayerId;
+  [PARAM.PLAYER_NAME]: string;
 }
 
-export const PROPERTY_TO_PARAMP = {
-  name: PARAM.PLAYER_NAME
+export interface PlayerData {
+  [PARAM.PLAYER_ID]: PlayerId;
+  [PARAM.PLAYER_NAME]?: string;
 }

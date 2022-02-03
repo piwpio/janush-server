@@ -1,8 +1,8 @@
 import { ChairId, PlayerId } from "../models/types.model";
-import { PARAM } from "../models/param.model";
+import { DATA_TYPE, PARAM } from "../models/param.model";
 import { PlayersService } from "../services/players.service";
-import { RMChairData } from "../models/response.model";
 import { Response } from "./response.class";
+import { RMChairChange } from "../models/response.model";
 
 export class Chair {
   private readonly id: ChairId;
@@ -15,19 +15,19 @@ export class Chair {
   }
 
   sitOn(playerId: PlayerId, response: Response): void {
-    this.playerId = playerId;
     this.isBusy = true;
-    response.addChairDataToResponse(this.getData());
+    this.playerId = playerId;
+    response.add(this.getData());
   }
 
   standUp(response: Response): void {
     this.reset();
-    response.addChairDataToResponse(this.getData());
+    response.add(this.getData());
   }
 
   setReady(isReady: boolean, response: Response): void {
     this.isReady = isReady;
-    response.addChairDataToResponse(this.getData());
+    response.add(this.getData());
   }
 
   reset(): void {
@@ -36,11 +36,14 @@ export class Chair {
     this.isReady = false;
   }
 
-  getData(): RMChairData {
+  getData(): RMChairChange {
     return {
-      [PARAM.CHAIR_ID]: this.id,
-      [PARAM.CHAIR_PLAYER]: PlayersService.getPlayerById(this.playerId).getData(),
-      [PARAM.CHAIR_PLAYER_IS_READY]: this.isReady
+      [PARAM.DATA_TYPE]: DATA_TYPE.CHAIR_CHANGE,
+      [PARAM.DATA]: {
+        [PARAM.CHAIR_ID]: this.id,
+        [PARAM.CHAIR_PLAYER]: PlayersService.getPlayerById(this.playerId)?.getDataForChair(),
+        [PARAM.CHAIR_PLAYER_IS_READY]: this.isReady
+      }
     }
   }
 }

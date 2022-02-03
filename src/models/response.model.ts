@@ -1,41 +1,54 @@
 import { DATA_TYPE, PARAM } from "./param.model";
 import { ChairId, PlayerId } from "./types.model";
+import { PlayerData, PlayerFullData } from "./player.model";
 
 export type ResponseType = ResponseModel[];
-export type ResponseModel = RMPlayer | RMTable | RMChair;
+export type ResponseModel = RMPlayerRegister | RMPlayerChange | RMTableChange | RMChairChange | RMGame | RMGameStart;
 
 // RESPONSE MODELS
-export interface RMPlayer {
-  [PARAM.DATA_TYPE]: DATA_TYPE.PLAYER_CHANGE | DATA_TYPE.PLAYER_REGISTER;
-  [PARAM.DATA]: RMPlayerData
-}
-export interface RMPlayerData {
-  [PARAM.PLAYER_ID]: PlayerId;
-  [PARAM.PLAYER_NAME]?: string;
+export interface RMPlayerRegister {
+  [PARAM.DATA_TYPE]: DATA_TYPE.PLAYER_REGISTER;
+  [PARAM.DATA]: PlayerFullData
 }
 
-export interface RMTable {
+export interface RMPlayerChange {
+  [PARAM.DATA_TYPE]: DATA_TYPE.PLAYER_CHANGE;
+  [PARAM.DATA]: PlayerData;
+}
+
+export interface RMTableChange {
   [PARAM.DATA_TYPE]: DATA_TYPE.TABLE_CHANGE;
-  [PARAM.DATA]: RMTableData
-}
-export interface RMTableData {
-  [PARAM.TABLE_CHAIR_1]?: RMChairData;
-  [PARAM.TABLE_CHAIR_2]?: RMChairData;
-  [PARAM.TABLE_QUEUE]?: RMPlayerData[];
-  [PARAM.TABLE_MOVE]?: {
-    [PARAM.TABLE_CHAIR]: number;
-    [PARAM.TABLE_FIELD_INDEX]: number;
-  }
+  [PARAM.DATA]: {
+    [PARAM.TABLE_QUEUE]?: PlayerData[];
+  };
 }
 
-export interface RMChair {
+export interface RMChairChange {
   [PARAM.DATA_TYPE]: DATA_TYPE.CHAIR_CHANGE;
-  [PARAM.DATA]: RMChairData
+  [PARAM.DATA]: {
+    [PARAM.CHAIR_ID]: ChairId;
+    [PARAM.CHAIR_PLAYER]?: PlayerData;
+    [PARAM.CHAIR_PLAYER_IS_READY]?: boolean;
+  };
 }
-export interface RMChairData {
-  [PARAM.CHAIR_ID]: ChairId,
-  [PARAM.CHAIR_PLAYER]?: RMPlayerData,
-  [PARAM.CHAIR_PLAYER_IS_READY]?: boolean,
+
+export interface RMGame {
+  [PARAM.DATA_TYPE]: DATA_TYPE.GAME;
+  [PARAM.DATA]: {
+    [PARAM.GAME_START]?: boolean;
+    [PARAM.GAME_START_TS]?: number;
+    [PARAM.GAME_ROUND]?: number;
+    [PARAM.GAME_ROUND_ITEMS]?: number[];
+  };
+}
+
+export interface RMGameStart {
+  [PARAM.DATA_TYPE]: DATA_TYPE.GAME_START;
+  [PARAM.DATA]: {
+    [PARAM.GAME_START]: boolean;
+    [PARAM.GAME_START_TS]: number;
+    [PARAM.GAME_ROUND]: number;
+  };
 }
 
 

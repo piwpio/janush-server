@@ -7,7 +7,7 @@ import { GATEWAY } from "../models/gateway.model";
 export class SocketService {
   static broadcast(response: ResponseType): void {
     PlayersService.players.forEach(player => {
-      player.socket.emit(GATEWAY.GAME, response)
+      player.socket.emit(GATEWAY.MAIN, response)
     });
   }
 }
