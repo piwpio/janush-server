@@ -4,15 +4,19 @@ import {
   OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
-  WebSocketServer,
 } from "@nestjs/websockets";
-import { Server, Socket } from 'socket.io';
-import { GameService } from "../services/game.service";
+import { Socket } from 'socket.io';
+import { PlayersService } from "../services/players.service";
 import { Player } from "../classes/player.class";
 import { SocketService } from "../services/socket.service";
 import { Response } from "../classes/response.class";
-import { GATEWAY, PayloadRegisterPlayer } from "../models/gateway.model";
+import { GATEWAY, PayloadPlayerRegister, PayloadTablePlayerIsReady } from "../models/gateway.model";
 import { DATA_TYPE, PARAM } from "../models/param.model";
+import { UseGuards } from "@nestjs/common";
+import { UserExistsGuard } from "../guards/user-exists.guard";
+import { UserNotExistGuard } from "../guards/user-not-exist.guard";
+import { TableService } from "../services/table.service";
+import { UserOnChair } from "../guards/user-on-chair.service";
 
 @WebSocketGateway(8080, { cors: true })
 export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
@@ -28,20 +32,37 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   handleDisconnect(client: Socket) {
-    GameService.unregisterPlayerById(client.id);
+    PlayersService.unregisterPlayerById(client.id);
   }
 
-  @SubscribeMessage(GATEWAY.REGISTER_PLAYER)
-  registerName(client: Socket, payload: PayloadRegisterPlayer) {
-    if (GameService.isPlayerExists(client)) return;
+  @UseGuards(UserNotExistGuard)
+  @SubscribeMessage(GATEWAY.PLAYER_REGISTER)
+  playerRegister(client: Socket, payload: PayloadPlayerRegister) {
+    const newPlayer = new Player(client, payload[PARAM.PLAYER_NAME]);
+    PlayersService.registerPlayer(newPlayer);
 
-    let newPlayer = new Player(client);
-    GameService.registerPlayer(newPlayer);
+    const response = new Response();
+    newPlayer.addPlayerToResponse(response, DATA_TYPE.PLAYER_REGISTER);
+    SocketService.broadcast(response.get())
+  }
 
-    newPlayer.name = payload[PARAM.NAME];
+  @UseGuards(UserExistsGuard)
+  @SubscribeMessage(GATEWAY.TABLE_SIT)
+  tableSit(client: Socket) {
+    const table = TableService.getTableInstance();
+    const response = new Response();
 
-    let response = new Response();
-    response.addPlayerDataResponse(DATA_TYPE.REGISTER_PLAYER, newPlayer.getData());
+    table.sit(client.id, response);
+    SocketService.broadcast(response.get())
+  }
+
+  @UseGuards(UserExistsGuard, UserOnChair)
+  @SubscribeMessage(GATEWAY.TABLE_PLAYER_IS_READY)
+  tablePlayerIsReady(client: Socket, payload: PayloadTablePlayerIsReady) {
+    const table = TableService.getTableInstance();
+    const response = new Response();
+
+    table.playerReady(client.id, payload[PARAM.TABLE_PLAYER_IS_READY], response);
     SocketService.broadcast(response.get())
   }
 }

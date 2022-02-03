@@ -1,4 +1,4 @@
-import { ResponseModel, ResponseType, RMPlayerChangeData } from "../models/response.model";
+import { ResponseModel, ResponseType, RMPlayer, RMPlayerData, RMTable, RMTableData } from "../models/response.model";
 
 import { DATA_TYPE, PARAM } from "../models/param.model";
 
@@ -8,7 +8,7 @@ export class Response {
   constructor() {}
 
   get(): ResponseType {
-    return [...this.response]
+    return this.response
   }
 
   private add(response: ResponseModel): Response {
@@ -16,14 +16,22 @@ export class Response {
     return this;
   }
 
-  addPlayerDataResponse(dataType: DATA_TYPE.PLAYER_CHANGE | DATA_TYPE.REGISTER_PLAYER,
-                        playerData: RMPlayerChangeData): Response
-  {
-    const response = {
+  addPlayerDataResponse(
+    dataType: DATA_TYPE.PLAYER_CHANGE | DATA_TYPE.PLAYER_REGISTER,
+    playerData: RMPlayerData
+  ): Response {
+    const response: RMPlayer = {
       [PARAM.DATA_TYPE]: dataType,
       [PARAM.DATA]: playerData
     }
-    this.add(response);
-    return this;
+    return this.add(response);
+  }
+
+  addTableDataResponse(tableData: RMTableData): Response {
+    const response: RMTable = {
+      [PARAM.DATA_TYPE]: DATA_TYPE.TABLE_CHANGE,
+      [PARAM.DATA]: tableData
+    }
+    return this.add(response);
   }
 }

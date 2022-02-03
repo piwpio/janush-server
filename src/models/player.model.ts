@@ -1,9 +1,9 @@
 import { PARAM } from "./param.model";
 
 export interface PlayerData {
-  [PARAM.NAME]?: string;
+  [PARAM.PLAYER_NAME]?: string;
 }
 
 export const PROPERTY_TO_PARAMP = {
-  name: PARAM.NAME
+  name: PARAM.PLAYER_NAME
 }

@@ -1,47 +1,36 @@
-import { RMPlayerChangeData } from "../models/response.model";
-import { PlayerData, PROPERTY_TO_PARAMP } from "../models/player.model";
+import { RMPlayerData } from "../models/response.model";
+import { PlayerData } from "../models/player.model";
 import { Socket } from "socket.io";
-import { PARAM } from "../models/param.model";
+import { DATA_TYPE, PARAM } from "../models/param.model";
+import { PlayerId } from "../models/types.model";
+import { Response } from "./response.class";
 
 export class Player {
-  public socket: Socket;
-  public id: string;
+  public readonly socket: Socket;
+  public readonly id: PlayerId;
 
-  public isDirty = false;
   public dirtyData: PlayerData = {};
 
   // properties
-  public name = '';
+  public readonly name = '';
 
-  constructor(socket) {
+  constructor(socket, name) {
     this.socket = socket;
     this.id = socket.id;
-    // Set isDirty everytime when property has changed
-    return new Proxy(this, {
-      set: (player, field, value) => {
-        player[field] = value;
-        if (field === 'id' || field === 'socket') return true;
-
-        player.dirtyData[PROPERTY_TO_PARAMP[field]] = value;
-        player.isDirty = true
-        return true;
-      }
-    });
+    this.name = name;
   }
 
-  getData(): RMPlayerChangeData {
+  addPlayerToResponse(
+    response: Response,
+    dataType: DATA_TYPE.PLAYER_CHANGE | DATA_TYPE.PLAYER_REGISTER = DATA_TYPE.PLAYER_REGISTER
+  ): void {
+    response.addPlayerDataResponse(dataType, this.getData());
+  }
+
+  getData(): RMPlayerData {
     return {
       [PARAM.PLAYER_ID]: this.id,
-      [PARAM.NAME]: this.name
+      [PARAM.PLAYER_NAME]: this.name
     }
-  }
-
-  getDirtyData(): RMPlayerChangeData {
-    if (!this.isDirty) return;
-
-    let dirtyData = {[PARAM.PLAYER_ID]: this.id, ...this.dirtyData};
-    this.isDirty = false;
-    this.dirtyData = {};
-    return dirtyData;
   }
 }
