@@ -3,7 +3,11 @@ import { ChairId, PlayerId } from "./types.model";
 import { PlayerData, PlayerFullData } from "./player.model";
 
 export type ResponseType = ResponseModel[];
-export type ResponseModel = RMPlayerRegister | RMPlayerChange | RMTableChange | RMChairChange | RMGame | RMGameStart;
+export type ResponseModel =
+  RMPlayerRegister | RMPlayerChange |
+  RMTableChange |
+  RMChairChange |
+  RMGameStart | RMGameEnd;
 
 // RESPONSE MODELS
 export interface RMPlayerRegister {
@@ -32,22 +36,18 @@ export interface RMChairChange {
   };
 }
 
-export interface RMGame {
-  [PARAM.DATA_TYPE]: DATA_TYPE.GAME;
-  [PARAM.DATA]: {
-    [PARAM.GAME_START]?: boolean;
-    [PARAM.GAME_START_TS]?: number;
-    [PARAM.GAME_ROUND]?: number;
-    [PARAM.GAME_ROUND_ITEMS]?: number[];
-  };
-}
-
 export interface RMGameStart {
   [PARAM.DATA_TYPE]: DATA_TYPE.GAME_START;
   [PARAM.DATA]: {
-    [PARAM.GAME_START]: boolean;
     [PARAM.GAME_START_TS]: number;
     [PARAM.GAME_ROUND]: number;
+  };
+}
+
+export interface RMGameEnd {
+  [PARAM.DATA_TYPE]: DATA_TYPE.GAME_END;
+  [PARAM.DATA]: {
+    [PARAM.GAME_WINNER]: PlayerData
   };
 }
 

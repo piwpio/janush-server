@@ -11,6 +11,7 @@ export class Player {
 
   // properties
   public readonly name = '';
+  public winstreak = 0;
 
   constructor(socket, name) {
     this.socket = socket;
@@ -28,7 +29,8 @@ export class Player {
   getDataFull(): PlayerFullData {
     return {
       [PARAM.PLAYER_ID]: this.id,
-      [PARAM.PLAYER_NAME]: this.name
+      [PARAM.PLAYER_NAME]: this.name,
+      [PARAM.PLAYER_WINSTREAK]: this.winstreak
     }
   }
 
@@ -43,6 +45,14 @@ export class Player {
     return {
       [PARAM.PLAYER_ID]: this.id,
       [PARAM.PLAYER_NAME]: this.name
+    }
+  }
+
+  getDataForEndGame(): PlayerData {
+    return {
+      [PARAM.PLAYER_ID]: this.id,
+      [PARAM.PLAYER_NAME]: this.name,
+      [PARAM.PLAYER_WINSTREAK]: this.winstreak
     }
   }
 }

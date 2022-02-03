@@ -4,6 +4,7 @@ export enum PARAM {
 
   PLAYER_ID = 'player_id',
   PLAYER_NAME = 'player_name',
+  PLAYER_WINSTREAK = 'player_winstreak',
 
   TABLE_CHAIR_1 = 'table_chair_1',
   TABLE_CHAIR_2 = 'table_chair_2',
@@ -18,7 +19,8 @@ export enum PARAM {
   GAME_START = 'game_start',
   GAME_START_TS = 'game_start_ts',
   GAME_ROUND = 'game_round',
-  GAME_ROUND_ITEMS = 'game_round_items'
+  GAME_ROUND_ITEMS = 'game_round_items',
+  GAME_WINNER = 'game_winner'
 }
 
 export enum DATA_TYPE {
@@ -26,6 +28,6 @@ export enum DATA_TYPE {
   PLAYER_CHANGE = 'player_change',
   TABLE_CHANGE = 'table_change',
   CHAIR_CHANGE = 'chair_change',
-  GAME = 'game',
-  GAME_START = 'game_start'
+  GAME_START = 'game_start',
+  GAME_END = 'game_end'
 }

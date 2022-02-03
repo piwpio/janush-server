@@ -4,7 +4,8 @@ export enum GATEWAY {
   MAIN = 'main',
   EXCEPTION = 'exception',
   PLAYER_REGISTER = 'player_register',
-  TABLE_SIT = 'table_sit',
+  TABLE_SIT_TO = 'table_sit_down',
+  TABLE_STAND_FROM = 'table_stand_up',
   CHAIR_PLAYER_IS_READY = 'chair_player_is_ready',
 }
 

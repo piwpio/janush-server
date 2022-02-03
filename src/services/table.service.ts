@@ -13,4 +13,9 @@ export class TableService {
   static isUserOnChair(playerId: PlayerId): boolean {
     return TableService.table.chair1.playerId === playerId || TableService.table.chair2.playerId === playerId;
   }
+
+  static isUserReady(playerId: PlayerId): boolean {
+    const table = TableService.table;
+    return (table.chair1.playerId === playerId ? table.chair1 : table.chair2).isReady;
+  }
 }

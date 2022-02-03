@@ -14,7 +14,7 @@ export class Chair {
     this.id = id;
   }
 
-  sitOn(playerId: PlayerId, response: Response): void {
+  sitDown(playerId: PlayerId, response: Response): void {
     this.isBusy = true;
     this.playerId = playerId;
     response.add(this.getData());
@@ -41,7 +41,7 @@ export class Chair {
       [PARAM.DATA_TYPE]: DATA_TYPE.CHAIR_CHANGE,
       [PARAM.DATA]: {
         [PARAM.CHAIR_ID]: this.id,
-        [PARAM.CHAIR_PLAYER]: PlayersService.getPlayerById(this.playerId)?.getDataForChair(),
+        [PARAM.CHAIR_PLAYER]: this.playerId ? PlayersService.getPlayerById(this.playerId)?.getDataForChair() : null,
         [PARAM.CHAIR_PLAYER_IS_READY]: this.isReady
       }
     }
