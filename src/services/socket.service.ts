@@ -6,6 +6,8 @@ import { GATEWAY } from "../models/gateway.model";
 @Injectable()
 export class SocketService {
   static broadcast(response: ResponseType): void {
+    if (!response.length) return;
+
     PlayersService.players.forEach(player => {
       player.socket.emit(GATEWAY.MAIN, response)
     });

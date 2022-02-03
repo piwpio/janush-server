@@ -3,7 +3,7 @@ import {
   OnGatewayDisconnect,
   OnGatewayInit,
   SubscribeMessage,
-  WebSocketGateway,
+  WebSocketGateway, WebSocketServer,
 } from "@nestjs/websockets";
 import { Socket } from 'socket.io';
 import { PlayersService } from "../services/players.service";
@@ -16,28 +16,23 @@ import { UserExistsGuard, UserNotExistGuard } from "../guards/user-exists.guard"
 import { TableService } from "../services/table.service";
 import { UserNotOnChair, UserOnChair } from "../guards/user-on-chair.guard";
 import { UserReadyGuard } from "../guards/user-ready.guard";
+import { UserNotOnTable, UserOnTable } from "../guards/user-on-table.guard";
 
 @WebSocketGateway(8080, { cors: true })
 export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
-  // @WebSocketServer()
-  // server: Server;
-
   afterInit() {}
-
-  handleConnection(client: Socket) {
-
-  }
+  handleConnection(client: Socket) {}
 
   @UseGuards(UserExistsGuard)
   handleDisconnect(client: Socket) {
     const table = TableService.getTableInstance();
     const response = new Response();
 
-    table.standFrom(client.id, response);
+    if (TableService.isUserOnTable(client.id)) {
+      table.standFrom(client.id, response);
+    }
     PlayersService.unregisterPlayerById(client.id);
-
     response.broadcast();
-
   }
 
   @UseGuards(UserNotExistGuard)
@@ -51,7 +46,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     response.broadcast();
   }
 
-  @UseGuards(UserExistsGuard, UserNotOnChair)
+  @UseGuards(UserExistsGuard, UserNotOnTable)
   @SubscribeMessage(GATEWAY.TABLE_SIT_TO)
   tableSitTo(client: Socket) {
     const table = TableService.getTableInstance();
@@ -61,7 +56,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     response.broadcast();
   }
 
-  @UseGuards(UserExistsGuard, UserOnChair)
+  @UseGuards(UserExistsGuard, UserOnTable)
   @SubscribeMessage(GATEWAY.TABLE_STAND_FROM)
   tableStandFrom(client: Socket) {
     const table = TableService.getTableInstance();

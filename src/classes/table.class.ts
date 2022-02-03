@@ -6,6 +6,7 @@ import { Chair } from "./chair.class";
 import { GAME_ITEMS_PER_ROUND, GAME_ROUNDS, GAME_START_TIMEOUT } from "../config";
 import { RMGameEnd, RMGameStart, RMTableChange } from "../models/response.model";
 import { PlayerData } from "../models/player.model";
+import { TableService } from "../services/table.service";
 
 export class Table {
   public chair1: Chair = new Chair(1);
@@ -30,12 +31,18 @@ export class Table {
   }
 
   standFrom(playerId: PlayerId, response: Response) {
-    (this.chair1.playerId === playerId ? this.chair1 : this.chair2).standUp(response)
+    if (TableService.isUserOnChair(playerId)) {
+      (this.chair1.playerId === playerId ? this.chair1 : this.chair2).standUp(response)
 
-    if (this.isGameStarted) {
-      const winnerPlayerId = this.chair1.isBusy ? this.chair1.playerId : this.chair2.playerId;
-      const winnerPlayerData = PlayersService.getPlayerById(winnerPlayerId)?.getDataFull();
-      this.endGame(winnerPlayerData, response);
+      if (this.isGameStarted) {
+        const playerWinnerId = this.chair1.isBusy ? this.chair1.playerId : this.chair2.playerId;
+        (this.chair1.playerId === playerWinnerId ? this.chair1 : this.chair2).setReady(false, response);
+        response.add(this.getEndGameData(playerWinnerId));
+        this.resetGame();
+      }
+
+    } else if (TableService.isUserOnTable(playerId)) {
+      this.removeUserFromQueue(playerId, response);
     }
   }
 
@@ -62,11 +69,6 @@ export class Table {
     response.add(this.getNewGameData());
   }
 
-  private endGame(playerWinner: PlayerData, response: Response): void {
-    this.resetGame()
-    response.add(this.getEndGameData(playerWinner));
-  }
-
   private resetGame(): void {
     this.isGameStarted = false;
     this.currentRound = 0;
@@ -74,11 +76,19 @@ export class Table {
     this.gameStartTs = 0;
   }
 
+  private removeUserFromQueue(playerId: PlayerId, response: Response): void {
+    const index = this.queue.findIndex(queuePlayerId => queuePlayerId === playerId);
+    this.queue.splice(index, 1);
+    response.add(this.getQueueData());
+  }
+
   private getQueueData(): RMTableChange {
     const playersInQueue = [];
     this.queue.forEach(playerId => {
       const playerData = PlayersService.getPlayerById(playerId)?.getDataForQueue();
-      playerData || playersInQueue.push(playerData);
+      if (playerData) {
+        playersInQueue.push(playerData);
+      }
     });
     return {
       [PARAM.DATA_TYPE]: DATA_TYPE.TABLE_CHANGE,
@@ -98,11 +108,11 @@ export class Table {
     }
   }
 
-  private getEndGameData(winnerPlayerData: PlayerData): RMGameEnd {
+  private getEndGameData(playerWinnerId: PlayerId): RMGameEnd {
     return {
       [PARAM.DATA_TYPE]: DATA_TYPE.GAME_END,
       [PARAM.DATA]: {
-        [PARAM.GAME_WINNER]: winnerPlayerData
+        [PARAM.GAME_WINNER]: PlayersService.getPlayerById(playerWinnerId)?.getDataFull()
       }
     }
   }
