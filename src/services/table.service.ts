@@ -11,6 +11,6 @@ export class TableService {
   }
 
   static isUserOnChair(playerId: PlayerId): boolean {
-    return TableService.table.chair1 === playerId || TableService.table.chair2 === playerId;
+    return TableService.table.chair1.playerId === playerId || TableService.table.chair2.playerId === playerId;
   }
 }

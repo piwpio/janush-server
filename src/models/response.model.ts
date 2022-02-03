@@ -1,8 +1,8 @@
 import { DATA_TYPE, PARAM } from "./param.model";
-import { PlayerId } from "./types.model";
+import { ChairId, PlayerId } from "./types.model";
 
 export type ResponseType = ResponseModel[];
-export type ResponseModel = RMPlayer | RMTable;
+export type ResponseModel = RMPlayer | RMTable | RMChair;
 
 // RESPONSE MODELS
 export interface RMPlayer {
@@ -19,19 +19,23 @@ export interface RMTable {
   [PARAM.DATA]: RMTableData
 }
 export interface RMTableData {
-  [PARAM.TABLE_CHAIR_1]?: {
-    [PARAM.TABLE_PLAYER]?: RMPlayerData,
-    [PARAM.TABLE_PLAYER_IS_READY]?: boolean,
-  };
-  [PARAM.TABLE_CHAIR_2]?: {
-    [PARAM.TABLE_PLAYER]?: RMPlayerData
-    [PARAM.TABLE_PLAYER_IS_READY]?: boolean,
-  };
+  [PARAM.TABLE_CHAIR_1]?: RMChairData;
+  [PARAM.TABLE_CHAIR_2]?: RMChairData;
   [PARAM.TABLE_QUEUE]?: RMPlayerData[];
   [PARAM.TABLE_MOVE]?: {
     [PARAM.TABLE_CHAIR]: number;
     [PARAM.TABLE_FIELD_INDEX]: number;
   }
+}
+
+export interface RMChair {
+  [PARAM.DATA_TYPE]: DATA_TYPE.CHAIR_CHANGE;
+  [PARAM.DATA]: RMChairData
+}
+export interface RMChairData {
+  [PARAM.CHAIR_ID]: ChairId,
+  [PARAM.CHAIR_PLAYER]?: RMPlayerData,
+  [PARAM.CHAIR_PLAYER_IS_READY]?: boolean,
 }
 
 

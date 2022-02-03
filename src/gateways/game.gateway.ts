@@ -10,7 +10,7 @@ import { PlayersService } from "../services/players.service";
 import { Player } from "../classes/player.class";
 import { SocketService } from "../services/socket.service";
 import { Response } from "../classes/response.class";
-import { GATEWAY, PayloadPlayerRegister, PayloadTablePlayerIsReady } from "../models/gateway.model";
+import { GATEWAY, PayloadPlayerRegister, PayloadChairPlayerIsReady } from "../models/gateway.model";
 import { DATA_TYPE, PARAM } from "../models/param.model";
 import { UseGuards } from "@nestjs/common";
 import { UserExistsGuard } from "../guards/user-exists.guard";
@@ -57,12 +57,14 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   @UseGuards(UserExistsGuard, UserOnChair)
-  @SubscribeMessage(GATEWAY.TABLE_PLAYER_IS_READY)
-  tablePlayerIsReady(client: Socket, payload: PayloadTablePlayerIsReady) {
+  @SubscribeMessage(GATEWAY.CHAIR_PLAYER_IS_READY)
+  tablePlayerIsReady(client: Socket, payload: PayloadChairPlayerIsReady) {
     const table = TableService.getTableInstance();
     const response = new Response();
 
-    table.playerReady(client.id, payload[PARAM.TABLE_PLAYER_IS_READY], response);
+    table.chair1.playerId === client.id ?
+      table.chair1.setReady(payload[PARAM.CHAIR_PLAYER_IS_READY], response):
+      table.chair2.setReady(payload[PARAM.CHAIR_PLAYER_IS_READY], response);
     SocketService.broadcast(response.get())
   }
 }

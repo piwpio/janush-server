@@ -1,4 +1,12 @@
-import { ResponseModel, ResponseType, RMPlayer, RMPlayerData, RMTable, RMTableData } from "../models/response.model";
+import {
+  ResponseModel,
+  ResponseType, RMChair,
+  RMChairData,
+  RMPlayer,
+  RMPlayerData,
+  RMTable,
+  RMTableData
+} from "../models/response.model";
 
 import { DATA_TYPE, PARAM } from "../models/param.model";
 
@@ -31,6 +39,14 @@ export class Response {
     const response: RMTable = {
       [PARAM.DATA_TYPE]: DATA_TYPE.TABLE_CHANGE,
       [PARAM.DATA]: tableData
+    }
+    return this.add(response);
+  }
+
+  addChairDataToResponse(chairData: RMChairData): Response {
+    const response: RMChair = {
+      [PARAM.DATA_TYPE]: DATA_TYPE.CHAIR_CHANGE,
+      [PARAM.DATA]: chairData
     }
     return this.add(response);
   }
