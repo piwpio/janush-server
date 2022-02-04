@@ -5,7 +5,16 @@ import { RMTableChange } from "../models/response.model";
 
 @Injectable()
 export class TableService {
+  private static instance: TableService;
   private readonly table: Table = new Table();
+
+  constructor() {
+    TableService.instance = this;
+  }
+
+  static getInstance(): TableService {
+    return this.instance;
+  }
 
   getTable(): Table {
     return this.table;

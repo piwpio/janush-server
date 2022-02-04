@@ -9,6 +9,8 @@ export class Chair {
   public playerId: PlayerId = null;
   public isBusy = false;
   public isReady = false;
+  public points = 0;
+  public winStreak = 0;
 
   constructor(id: ChairId) {
     this.id = id;
@@ -21,8 +23,7 @@ export class Chair {
   }
 
   standUp(response: Response): void {
-    this.reset();
-    response.add(this.getResponse());
+    this.reset(response);
   }
 
   setReady(isReady: boolean, response: Response): void {
@@ -30,10 +31,26 @@ export class Chair {
     response.add(this.getResponse());
   }
 
-  reset(): void {
+  setAfterGameWon(response: Response): void {
+    this.isReady = false;
+    this.points = 0;
+    ++this.winStreak;
+    response.add(this.getResponse());
+  }
+
+  setAfterGameLost(response: Response): void {
+    this.isReady = false;
+    this.points = 0;
+    response.add(this.getResponse());
+  }
+
+  private reset(response: Response): void {
     this.playerId = null;
     this.isBusy = false;
     this.isReady = false;
+    this.points = 0;
+
+    response.add(this.getResponse());
   }
 
   getResponse(): RMChairChange {
@@ -41,8 +58,11 @@ export class Chair {
       [PARAM.DATA_TYPE]: DATA_TYPE.CHAIR_CHANGE,
       [PARAM.DATA]: {
         [PARAM.CHAIR_ID]: this.id,
-        [PARAM.CHAIR_PLAYER]: this.playerId ? PlayersService.getPlayerById(this.playerId)?.getDataForChair() : null,
-        [PARAM.CHAIR_PLAYER_IS_READY]: this.isReady
+        [PARAM.CHAIR_PLAYER]:
+          this.playerId ? PlayersService.getInstance().getPlayerById(this.playerId)?.getDataForChair() : null,
+        [PARAM.CHAIR_PLAYER_IS_READY]: this.isReady,
+        [PARAM.CHAIR_POINTS]: this.points,
+        [PARAM.CHAIR_WINSTREAK]: this.winStreak
       }
     }
   }

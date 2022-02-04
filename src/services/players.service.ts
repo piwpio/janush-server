@@ -8,19 +8,16 @@ import { PayloadPlayerRegister } from "../models/gateway.model";
 
 @Injectable()
 export class PlayersService {
-  private static players: Player[] = [];
+  private static instance: PlayersService;
+  private players: Player[] = [];
 
-  static getPlayers(): Player[] {
-    return this.players;
+  constructor() {
+    PlayersService.instance = this;
   }
 
-  static getPlayerById(playerId: PlayerId): Player {
-    return this.players.find(player => player.id === playerId);
+  static getInstance(): PlayersService {
+    return this.instance;
   }
-
-  // INSTANCE
-
-  private players: Player[] = PlayersService.players;
 
   getPlayers(): Player[] {
     return this.players;

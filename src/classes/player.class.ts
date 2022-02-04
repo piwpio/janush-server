@@ -10,13 +10,32 @@ export class Player {
 
   // properties
   public readonly name = '';
-  public winstreak = 0;
+  public winCounter = 0;
+  public lostCounter = 0;
+  public maxWinStreak = 0;
 
   constructor(socket, name) {
     this.socket = socket;
     this.id = socket.id;
     this.name = name;
   }
+
+  setAfterGameWon(chairWinstreak: number, response: Response): void {
+    ++this.winCounter
+    this.maxWinStreak = Math.max(this.maxWinStreak, chairWinstreak)
+    this.addResponseAfterPlayerChange(response);
+  }
+
+  setAfterGameLost(response: Response): void {
+    ++this.lostCounter;
+    this.addResponseAfterPlayerChange(response);
+  }
+
+  addResponseAfterPlayerChange(response: Response): void {
+    response.add({
+      [PARAM.DATA_TYPE]: DATA_TYPE.PLAYER_CHANGE,
+      [PARAM.DATA]: this.getDataFull()
+    });  }
 
   addResponseAfterRegister(response: Response): void {
     response.add({
@@ -36,29 +55,21 @@ export class Player {
     return {
       [PARAM.PLAYER_ID]: this.id,
       [PARAM.PLAYER_NAME]: this.name,
-      [PARAM.PLAYER_WINSTREAK]: this.winstreak
+      [PARAM.PLAYER_MAX_WINSTREAK]: this.maxWinStreak,
+      [PARAM.PLAYER_WIN_COUNTER]: this.winCounter,
+      [PARAM.PLAYER_LOST_COUNTER]: this.lostCounter
     }
   }
 
   getDataForQueue(): PlayerData {
-    return {
-      [PARAM.PLAYER_ID]: this.id,
-      [PARAM.PLAYER_NAME]: this.name
-    }
+    return this.getDataFull();
   }
 
   getDataForChair(): PlayerData {
-    return {
-      [PARAM.PLAYER_ID]: this.id,
-      [PARAM.PLAYER_NAME]: this.name
-    }
+    return this.getDataFull();
   }
 
-  getDataForEndGame(): PlayerData {
-    return {
-      [PARAM.PLAYER_ID]: this.id,
-      [PARAM.PLAYER_NAME]: this.name,
-      [PARAM.PLAYER_WINSTREAK]: this.winstreak
-    }
+  getDataForEndGame(): PlayerFullData {
+    return this.getDataFull();
   }
 }

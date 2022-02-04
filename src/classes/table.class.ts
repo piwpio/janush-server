@@ -5,7 +5,13 @@ import { Response } from "./response.class"
 import { RMTableChange } from "../models/response.model";
 
 export class Table {
-  private queue: PlayerId[] = [];
+  public queue: PlayerId[] = [];
+
+  getFirstFromQueue(response: Response): PlayerId {
+    const first = this.queue.pop();
+    response.add(this.getResponse());
+    return first;
+  }
 
   isPlayerInQueue(playerId: PlayerId): boolean {
     return this.queue.some(queueUserId => queueUserId === playerId)
@@ -25,7 +31,7 @@ export class Table {
   getResponse(): RMTableChange {
     const playersInQueue = [];
     this.queue.forEach(playerId => {
-      const playerData = PlayersService.getPlayerById(playerId)?.getDataForQueue();
+      const playerData = PlayersService.getInstance().getPlayerById(playerId)?.getDataForQueue();
       if (playerData) {
         playersInQueue.push(playerData);
       }

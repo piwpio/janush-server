@@ -8,7 +8,7 @@ export class SocketService {
   static broadcast(response: ResponseType): void {
     if (!response.length) return;
 
-    PlayersService.getPlayers().forEach(player => {
+    PlayersService.getInstance().getPlayers().forEach(player => {
       player.socket.emit(GATEWAY.MAIN, response)
     });
   }

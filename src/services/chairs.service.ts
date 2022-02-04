@@ -6,10 +6,19 @@ import { RMChairChange } from "../models/response.model";
 
 @Injectable()
 export class ChairsService {
+  private static instance: ChairsService;
   private readonly chairs: Chair[] = [
     new Chair(CHAIR_ID.ID1),
     new Chair(CHAIR_ID.ID2)
   ]
+
+  constructor() {
+    ChairsService.instance = this;
+  }
+
+  static getInstance(): ChairsService {
+    return this.instance;
+  }
 
   getChair(chairId: CHAIR_ID): Chair {
     return this.chairs[chairId];

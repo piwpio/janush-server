@@ -37,7 +37,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   afterInit() {}
 
   handleConnection(client: Socket) {
-    const player = PlayersService.getPlayerById(client.id)
+    const player = this.playersService.getPlayerById(client.id)
     if (!player) return;
 
     player.socket = client;
@@ -124,7 +124,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     if (this.chairsService.getChair(CHAIR_ID.ID1).isReady && this.chairsService.getChair(CHAIR_ID.ID2).isReady) {
       const game = this.gameService.getGame();
-      game.startGame(response)
+      game.startGameTimeout(response)
     }
 
     response.broadcast();
@@ -142,13 +142,13 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         const winnerChair = this.chairsService.getOppositeChair(playerChair);
         winnerChair.setReady(false, response);
 
+        const winnerPlayer = this.playersService.getPlayerById(winnerChair.playerId)
         if (game.currentRound >= GAME_MIN_ROUND_PLAYED_TO_GET_WIN_AFTER_SURRENDER) {
-          const winnerPlayer = this.playersService.getPlayerById(winnerChair.playerId)
-          ++winnerPlayer.winstreak;
+          ++winnerPlayer.maxWinStreak;
         }
 
-        const winnerPlayerId = winnerChair.playerId;
-        response.add(game.getEndGameResponse(winnerPlayerId));
+        const winnerPlayerData = winnerPlayer.getDataForEndGame();
+        response.add(game.getEndGameResponse(winnerPlayerData));
 
         game.resetGame();
       }

@@ -8,7 +8,7 @@ export type ResponseModel =
   RMPlayerRegister | RMPlayerUnRegister| RMPlayerChange |
   RMTableChange |
   RMChairChange |
-  RMGameStart | RMGameEnd;
+  RMGameCountdown | RMGameStart | RMGameUpdate | RMGameEnd;
 
 // RESPONSE MODELS
 export interface RMInitData {
@@ -48,14 +48,29 @@ export interface RMChairChange {
     [PARAM.CHAIR_ID]: ChairId;
     [PARAM.CHAIR_PLAYER]?: PlayerData;
     [PARAM.CHAIR_PLAYER_IS_READY]?: boolean;
+    [PARAM.CHAIR_POINTS]?: number,
+    [PARAM.CHAIR_WINSTREAK]?: number
+  };
+}
+
+export interface RMGameCountdown {
+  [PARAM.DATA_TYPE]: DATA_TYPE.GAME_COUNTDOWN;
+  [PARAM.DATA]: {
+    [PARAM.GAME_START_TS]: number;
   };
 }
 
 export interface RMGameStart {
   [PARAM.DATA_TYPE]: DATA_TYPE.GAME_START;
+  [PARAM.DATA]: {};
+}
+
+export interface RMGameUpdate {
+  [PARAM.DATA_TYPE]: DATA_TYPE.GAME_UPDATE;
   [PARAM.DATA]: {
-    [PARAM.GAME_START_TS]: number;
     [PARAM.GAME_ROUND]: number;
+    [PARAM.GAME_ROUND_ITEMS_IDS]: number[];
+    [PARAM.GAME_NEXT_UPDATE_TS]: number[];
   };
 }
 
