@@ -2,25 +2,38 @@ import {
   OnGatewayConnection,
   OnGatewayDisconnect,
   OnGatewayInit,
-  SubscribeMessage, WebSocketGateway
+  SubscribeMessage,
+  WebSocketGateway
 } from "@nestjs/websockets";
 import { Socket } from 'socket.io';
 import { PlayersService } from "../services/players.service";
-import { Player } from "../classes/player.class";
 import { Response } from "../classes/response.class";
-import { GATEWAY, PayloadPlayerRegister, PayloadChairPlayerIsReady } from "../models/gateway.model";
-import { PARAM } from "../models/param.model";
+import { GATEWAY, PayloadChairPlayerIsReady, PayloadPlayerRegister } from "../models/gateway.model";
 import { UseGuards } from "@nestjs/common";
 import { PlayerExistsGuard, PlayerNotExistGuard } from "../guards/player-exists.guard";
 import { TableService } from "../services/table.service";
-import { PlayerOnChair } from "../guards/player-on-chair.guard";
-import { PlayerReadyGuard } from "../guards/player-ready.guard";
 import { PlayerNotOnTable, PlayerOnTable } from "../guards/player-on-table.guard";
 import { PlayerLimitGuard } from "../guards/player-limit.guard";
 import { DataService } from "../services/data.service";
+import { ChairsService } from "../services/chairs.service";
+import { GameService } from "../services/game.service";
+import { CHAIR_ID } from "../models/chair.model";
+import { PlayerOnChair } from "../guards/player-on-chair.guard";
+import { PlayerReadyGuard } from "../guards/player-ready.guard";
+import { PARAM } from "../models/param.model";
+import { GAME_MIN_ROUND_PLAYED_TO_GET_WIN_AFTER_SURRENDER } from "../config";
+import { PlayerId } from "../models/types.model";
 
 @WebSocketGateway(8080, { cors: true })
 export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+  constructor(
+    private playersService: PlayersService,
+    private tableService: TableService,
+    private chairsService: ChairsService,
+    private gameService: GameService,
+    private dataService: DataService,
+  ) {}
+
   afterInit() {}
 
   handleConnection(client: Socket) {
@@ -30,68 +43,115 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     player.socket = client;
 
     const initDataResponse = new Response();
-    DataService.addInitDataToResponse(initDataResponse);
+    this.dataService.addInitDataToResponse(initDataResponse);
     player.socket.emit(GATEWAY.MAIN, initDataResponse.get());
 
     const response = new Response();
-    player.afterRegister(response);
+    player.addResponseAfterRegister(response);
     response.broadcast();
   }
 
-  @UseGuards(PlayerExistsGuard)
   handleDisconnect(client: Socket) {
-    const table = TableService.getTableInstance();
+    const playerId = client.id;
+
+    if (!this.playersService.isPlayerExists(client.id)) return;
+
     const response = new Response();
 
-    if (TableService.isPlayerOnTable(client.id)) {
-      table.standFrom(client.id, response);
+    if (this.chairsService.isPlayerOnChair(playerId) || this.tableService.isPlayerInQueue(playerId)) {
+      this.tableStandFromLogic(client.id, response);
     }
-    PlayersService.unregisterPlayerById(client.id);
+
+    const unregisteredPlayer = this.playersService.unregisterPlayerById(client.id);
+    unregisteredPlayer.addResponseAfterUnRegister(response);
+
     response.broadcast();
   }
 
   @UseGuards(PlayerLimitGuard, PlayerNotExistGuard)
   @SubscribeMessage(GATEWAY.PLAYER_REGISTER)
   playerRegister(client: Socket, payload: PayloadPlayerRegister) {
-    const newPlayer = new Player(client, payload[PARAM.PLAYER_NAME]);
-    PlayersService.registerPlayer(newPlayer);
+    const newPlayer = this.playersService.registerPlayer(client, payload);
 
     const initDataResponse = new Response();
-    DataService.addInitDataToResponse(initDataResponse);
+    this.dataService.addInitDataToResponse(initDataResponse);
+
     newPlayer.socket.emit(GATEWAY.MAIN, initDataResponse.get());
 
-    const response = new Response();
-    newPlayer.afterRegister(response);
-    response.broadcast();
+    const broadcastResponse = new Response();
+    newPlayer.addResponseAfterRegister(broadcastResponse);
+
+    broadcastResponse.broadcast();
   }
 
   @UseGuards(PlayerExistsGuard, PlayerNotOnTable)
   @SubscribeMessage(GATEWAY.TABLE_SIT_TO)
   tableSitTo(client: Socket) {
-    const table = TableService.getTableInstance();
+    const playerId = client.id
     const response = new Response();
+    const chair1 = this.chairsService.getChair(CHAIR_ID.ID1);
+    const chair2 = this.chairsService.getChair(CHAIR_ID.ID2);
+    const table = this.tableService.getTable();
 
-    table.sitTo(client.id, response);
+    if (!chair1.isBusy) {
+      chair1.sitDown(playerId, response)
+    } else if (!chair2.isBusy) {
+      chair2.sitDown(playerId, response);
+    } else {
+      table.addToQueue(playerId, response);
+    }
+
     response.broadcast();
   }
 
   @UseGuards(PlayerExistsGuard, PlayerOnTable)
   @SubscribeMessage(GATEWAY.TABLE_STAND_FROM)
   tableStandFrom(client: Socket) {
-    const table = TableService.getTableInstance();
     const response = new Response();
+    this.tableStandFromLogic(client.id, response)
 
-    table.standFrom(client.id, response);
     response.broadcast();
   }
 
   @UseGuards(PlayerExistsGuard, PlayerOnChair, PlayerReadyGuard)
   @SubscribeMessage(GATEWAY.CHAIR_PLAYER_SET_READY)
   chairPlayerSetReady(client: Socket, payload: PayloadChairPlayerIsReady) {
-    const table = TableService.getTableInstance();
+    const playerId = client.id;
+    const isReady = payload[PARAM.CHAIR_PLAYER_IS_READY];
     const response = new Response();
 
-    table.setPlayerReady(client.id, payload[PARAM.CHAIR_PLAYER_IS_READY], response);
+    this.chairsService.getPlayerChair(playerId)?.setReady(isReady, response);
+
+    if (this.chairsService.getChair(CHAIR_ID.ID1).isReady && this.chairsService.getChair(CHAIR_ID.ID2).isReady) {
+      const game = this.gameService.getGame();
+      game.startGame(response)
+    }
+
     response.broadcast();
+  }
+
+  private tableStandFromLogic(playerId: PlayerId, response: Response): void {
+    const playerChair = this.chairsService.getPlayerChair(playerId);
+    const table = this.tableService.getTable();
+    const game = this.gameService.getGame()
+
+    if (playerChair) {
+      playerChair.standUp(response);
+
+      if (game.isGameStarted) {
+        if (game.currentRound >= GAME_MIN_ROUND_PLAYED_TO_GET_WIN_AFTER_SURRENDER) {
+          const winnerChair = this.chairsService.getOppositePlayerChair(playerId);
+          winnerChair.setReady(false, response);
+
+          const winnerPlayerId = winnerChair.playerId;
+          response.add(game.getEndGameResponse(winnerPlayerId));
+        }
+
+        game.resetGame();
+      }
+
+    } else if (table.isPlayerInQueue(playerId)) {
+      table.removeFromQueue(playerId, response);
+    }
   }
 }

@@ -1,22 +1,18 @@
 import { ResponseModel, ResponseType } from "../models/response.model";
 import { SocketService } from "../services/socket.service";
-import { Socket } from "socket.io";
 
 export class Response {
   private response: ResponseType = [];
-
-  constructor() {}
 
   get(): ResponseType {
     return this.response
   }
 
-  add(response: ResponseModel): Response {
+  add(response: ResponseModel): void {
     this.response.push(response);
-    return this;
   }
 
   broadcast(): void {
-    SocketService.broadcast(this.get());
+    SocketService.broadcast(this.response);
   }
 }

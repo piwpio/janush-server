@@ -31,6 +31,7 @@ export enum PARAM {
 export enum DATA_TYPE {
   INIT = 'init',
   PLAYER_REGISTER = 'player_register',
+  PLAYER_UNREGISTER = 'player_unregister',
   PLAYER_CHANGE = 'player_change',
   TABLE_CHANGE = 'table_change',
   CHAIR_CHANGE = 'chair_change',

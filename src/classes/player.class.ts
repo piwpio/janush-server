@@ -1,4 +1,3 @@
-import { RMPlayerChange } from "../models/response.model";
 import { Socket } from "socket.io";
 import { DATA_TYPE, PARAM } from "../models/param.model";
 import { PlayerId } from "../models/types.model";
@@ -19,9 +18,16 @@ export class Player {
     this.name = name;
   }
 
-  afterRegister(response: Response): void {
+  addResponseAfterRegister(response: Response): void {
     response.add({
       [PARAM.DATA_TYPE]: DATA_TYPE.PLAYER_REGISTER,
+      [PARAM.DATA]: this.getDataFull()
+    });
+  }
+
+  addResponseAfterUnRegister(response: Response): void {
+    response.add({
+      [PARAM.DATA_TYPE]: DATA_TYPE.PLAYER_UNREGISTER,
       [PARAM.DATA]: this.getDataFull()
     });
   }

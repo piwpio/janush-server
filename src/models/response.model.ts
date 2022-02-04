@@ -5,7 +5,7 @@ import { PlayerData, PlayerFullData } from "./player.model";
 export type ResponseType = ResponseModel[];
 export type ResponseModel =
   RMInitData |
-  RMPlayerRegister | RMPlayerChange |
+  RMPlayerRegister | RMPlayerUnRegister| RMPlayerChange |
   RMTableChange |
   RMChairChange |
   RMGameStart | RMGameEnd;
@@ -22,6 +22,11 @@ export interface RMInitData {
 
 export interface RMPlayerRegister {
   [PARAM.DATA_TYPE]: DATA_TYPE.PLAYER_REGISTER;
+  [PARAM.DATA]: PlayerFullData
+}
+
+export interface RMPlayerUnRegister {
+  [PARAM.DATA_TYPE]: DATA_TYPE.PLAYER_UNREGISTER;
   [PARAM.DATA]: PlayerFullData
 }
 

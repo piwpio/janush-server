@@ -1,32 +1,53 @@
 import { Injectable } from "@nestjs/common";
 import { Player } from "../classes/player.class";
 import { PlayerId } from "../models/types.model";
-import { Response } from "../classes/response.class";
-import { DATA_TYPE, PARAM } from "../models/param.model";
+import { PARAM } from "../models/param.model";
 import { PlayerFullData } from "../models/player.model";
+import { Socket } from "socket.io";
+import { PayloadPlayerRegister } from "../models/gateway.model";
 
 @Injectable()
 export class PlayersService {
-  static players: Player[] = [];
+  private static players: Player[] = [];
 
-  static registerPlayer(player: Player): void {
-    this.players.push(player);
-  }
-
-  static unregisterPlayerById(playerId: PlayerId): void {
-    let index = this.players.findIndex(player => player.id === playerId);
-    this.players.splice(index, 1);
-  }
-
-  static isPlayerExists(playerId: PlayerId): boolean {
-    return this.players.some(player => player.id === playerId)
+  static getPlayers(): Player[] {
+    return this.players;
   }
 
   static getPlayerById(playerId: PlayerId): Player {
     return this.players.find(player => player.id === playerId);
   }
 
-  static getPlayersData(): PlayerFullData[] {
+  // INSTANCE
+
+  private players: Player[] = PlayersService.players;
+
+  getPlayers(): Player[] {
+    return this.players;
+  }
+
+  registerPlayer(client: Socket, payload: PayloadPlayerRegister): Player {
+    const newPlayer = new Player(client, payload[PARAM.PLAYER_NAME]);
+    this.players.push(newPlayer);
+    return newPlayer;
+  }
+
+  unregisterPlayerById(playerId: PlayerId): Player {
+    const index = this.players.findIndex(player => player.id === playerId);
+    const deleted = this.players.splice(index, 1);
+    console.log(deleted);
+    return deleted[0];
+  }
+
+  isPlayerExists(playerId: PlayerId): boolean {
+    return this.players.some(player => player.id === playerId)
+  }
+
+  getPlayerById(playerId: PlayerId): Player {
+    return this.players.find(player => player.id === playerId);
+  }
+
+  getPlayersDataForInit(): PlayerFullData[] {
     const playersData = [];
     this.players.forEach(player => {
       playersData.push(player.getDataFull());

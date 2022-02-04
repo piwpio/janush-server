@@ -2,15 +2,19 @@ import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
 import { Observable } from "rxjs";
 import { PlayersService } from "../services/players.service";
 import { WsException } from "@nestjs/websockets";
-import { MAX_PLAYERS } from "../config";
 
 @Injectable()
 export class PlayerExistsGuard implements CanActivate {
+  constructor(
+    private playersService: PlayersService
+  ) {}
+
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
     let client = context.getArgs()[0];
-    if (PlayersService.isPlayerExists(client.id)) {
+    if (this.playersService.isPlayerExists(client.id)) {
+      console.log(`${client.id} exists`);
       return true;
     } else {
       throw new WsException('User is not exist');
@@ -20,11 +24,15 @@ export class PlayerExistsGuard implements CanActivate {
 
 @Injectable()
 export class PlayerNotExistGuard implements CanActivate {
+  constructor(
+    private playersService: PlayersService
+  ) {}
+
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
     let client = context.getArgs()[0];
-    if (PlayersService.players.length < MAX_PLAYERS && !PlayersService.isPlayerExists(client.id)) {
+    if (!this.playersService.isPlayerExists(client.id)) {
       return true;
     } else {
       throw new WsException('User already exist');

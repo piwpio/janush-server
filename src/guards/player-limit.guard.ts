@@ -6,13 +6,17 @@ import { WsException } from "@nestjs/websockets";
 
 @Injectable()
 export class PlayerLimitGuard implements CanActivate {
+  constructor(
+    private playersService: PlayersService
+  ) {}
+
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
-    if (PlayersService.players.length < MAX_PLAYERS) {
+    if (this.playersService.getPlayers().length < MAX_PLAYERS) {
       return true;
     } else {
-      throw new WsException('Registered users limit reached, sorry :(');
+      throw new WsException('Registered players limit reached, sorry :(');
     }
   }
 }
