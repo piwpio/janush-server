@@ -3,14 +3,13 @@ import { DATA_TYPE, PARAM } from "../models/param.model";
 import { PlayersService } from "../services/players.service";
 import { Response } from "./response.class";
 import { Chair } from "./chair.class";
-import { GAME_ITEMS_PER_ROUND, GAME_ROUNDS, GAME_START_TIMEOUT } from "../config";
+import { GAME_ITEMS_PER_ROUND, GAME_MIN_ROUND_PLAYED_TO_GET_WIN_AFTER_SURRENDER, GAME_ROUNDS, GAME_START_TIMEOUT } from "../config";
 import { RMGameEnd, RMGameStart, RMTableChange } from "../models/response.model";
-import { PlayerData } from "../models/player.model";
-import { TableService } from "../services/table.service";
+import { CHAIR_ID_1, CHAIR_ID_2 } from "../models/chair.model";
 
 export class Table {
-  public chair1: Chair = new Chair(1);
-  public chair2: Chair = new Chair(2);
+  public chair1: Chair = new Chair(CHAIR_ID_1);
+  public chair2: Chair = new Chair(CHAIR_ID_2);
   public queue: PlayerId[] = [];
 
   // GAME
@@ -25,33 +24,77 @@ export class Table {
     } else if (!this.chair2.isBusy) {
       this.chair2.sitDown(playerId, response);
     } else {
-      this.queue.push(playerId)
-      response.add(this.getQueueData());
+      this.addToQueue(playerId, response);
     }
   }
 
   standFrom(playerId: PlayerId, response: Response) {
-    if (TableService.isUserOnChair(playerId)) {
-      (this.chair1.playerId === playerId ? this.chair1 : this.chair2).standUp(response)
+    const playerChair = this.getPlayerChair(playerId);
+
+    if (playerChair) {
+      playerChair.standUp(response);
 
       if (this.isGameStarted) {
-        const playerWinnerId = this.chair1.isBusy ? this.chair1.playerId : this.chair2.playerId;
-        (this.chair1.playerId === playerWinnerId ? this.chair1 : this.chair2).setReady(false, response);
-        response.add(this.getEndGameData(playerWinnerId));
+        if (this.currentRound >= GAME_MIN_ROUND_PLAYED_TO_GET_WIN_AFTER_SURRENDER) {
+          const winnerChair = playerChair.id === CHAIR_ID_1 ? this.chair2 : this.chair1;
+          winnerChair.setReady(false, response);
+
+          const winnerPlayerId = winnerChair.playerId;
+          response.add(this.getEndGameData(winnerPlayerId));
+        }
+
         this.resetGame();
       }
 
-    } else if (TableService.isUserOnTable(playerId)) {
-      this.removeUserFromQueue(playerId, response);
+    } else if (this.isPlayerInQueue(playerId)) {
+      this.removeFromQueue(playerId, response);
     }
   }
 
-  playerIsReady(playerId: PlayerId, isReady: boolean, response: Response): void {
-    (this.chair1.playerId === playerId ? this.chair1 : this.chair2).setReady(isReady, response);
+  setPlayerReady(playerId: PlayerId, isReady: boolean, response: Response): void {
+    this.getPlayerChair(playerId)?.setReady(isReady, response);
 
     if (this.chair1.isReady && this.chair2.isReady) {
       this.startGame(response)
     }
+  }
+
+  // HELPERS REGION
+
+  isPlayerOnChair(playerId: PlayerId): boolean {
+    return !!this.getPlayerChair(playerId);
+  }
+
+  isPlayerInQueue(playerId: PlayerId): boolean {
+    return this.queue.some(queueUserId => queueUserId === playerId)
+  }
+
+  isPlayerReady(playerId: PlayerId): boolean {
+    const playerChair = this.getPlayerChair(playerId);
+    if (playerChair)
+      return playerChair.isReady;
+    else
+      return false
+  }
+
+  private addToQueue(playerId: PlayerId, response: Response): void {
+    this.queue.push(playerId)
+    response.add(this.getQueueData());
+  }
+
+  private removeFromQueue(playerId: PlayerId, response: Response): void {
+    const index = this.queue.findIndex(queuePlayerId => queuePlayerId === playerId);
+    this.queue.splice(index, 1);
+    response.add(this.getQueueData());
+  }
+
+  private getPlayerChair(playerId: PlayerId): Chair {
+    if (this.chair1.playerId === playerId)
+      return this.chair1
+    else if (this.chair1.playerId === playerId)
+      return this.chair2;
+
+    return null
   }
 
   private startGame(response: Response): void {
@@ -76,11 +119,7 @@ export class Table {
     this.gameStartTs = 0;
   }
 
-  private removeUserFromQueue(playerId: PlayerId, response: Response): void {
-    const index = this.queue.findIndex(queuePlayerId => queuePlayerId === playerId);
-    this.queue.splice(index, 1);
-    response.add(this.getQueueData());
-  }
+  // GET DATA REGION
 
   private getQueueData(): RMTableChange {
     const playersInQueue = [];

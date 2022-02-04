@@ -28,7 +28,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     const table = TableService.getTableInstance();
     const response = new Response();
 
-    if (TableService.isUserOnTable(client.id)) {
+    if (TableService.isPlayerOnTable(client.id)) {
       table.standFrom(client.id, response);
     }
     PlayersService.unregisterPlayerById(client.id);
@@ -72,7 +72,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     const table = TableService.getTableInstance();
     const response = new Response();
 
-    table.playerIsReady(client.id, payload[PARAM.CHAIR_PLAYER_IS_READY], response);
+    table.setPlayerReady(client.id, payload[PARAM.CHAIR_PLAYER_IS_READY], response);
     response.broadcast();
   }
 }

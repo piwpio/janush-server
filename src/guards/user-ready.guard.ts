@@ -11,7 +11,7 @@ export class UserReadyGuard implements CanActivate {
   ): boolean | Promise<boolean> | Observable<boolean> {
     let client = context.getArgs()[0];
     let isReady = context.getArgs()[1][PARAM.CHAIR_PLAYER_IS_READY];
-    if (TableService.isUserReady(client.id) !== isReady) {
+    if (TableService.isPlayerReady(client.id) !== isReady) {
       return true;
     } else {
       throw new WsException('User already ready/not ready');

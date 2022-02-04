@@ -10,16 +10,19 @@ export class TableService {
     return TableService.table;
   }
 
-  static isUserOnTable(playerId: PlayerId): boolean {
-    return TableService.isUserOnChair(playerId) || TableService.table.queue.some(queueUserId => queueUserId === playerId);
+  static isPlayerOnChair(playerId: PlayerId): boolean {
+    return TableService.table.isPlayerOnChair(playerId);
   }
 
-  static isUserOnChair(playerId: PlayerId): boolean {
-    return TableService.table.chair1.playerId === playerId || TableService.table.chair2.playerId === playerId;
+  static isPlayerInQueue(playerId: PlayerId): boolean {
+    return TableService.table.isPlayerInQueue(playerId);
   }
 
-  static isUserReady(playerId: PlayerId): boolean {
-    const table = TableService.table;
-    return (table.chair1.playerId === playerId ? table.chair1 : table.chair2).isReady;
+  static isPlayerOnTable(playerId: PlayerId): boolean {
+    return TableService.isPlayerOnChair(playerId) || TableService.isPlayerInQueue(playerId);
+  }
+
+  static isPlayerReady(playerId: PlayerId): boolean {
+    return TableService.table.isPlayerReady(playerId);
   }
 }

@@ -9,7 +9,7 @@ export class UserOnTable implements CanActivate {
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
     let client = context.getArgs()[0];
-    if (TableService.isUserOnTable(client.id)) {
+    if (TableService.isPlayerOnTable(client.id)) {
       return true;
     } else {
       throw new WsException('User is not on table');
@@ -23,7 +23,7 @@ export class UserNotOnTable implements CanActivate {
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
     let client = context.getArgs()[0];
-    if (!TableService.isUserOnTable(client.id)) {
+    if (!TableService.isPlayerOnTable(client.id)) {
       return true;
     } else {
       throw new WsException('User is sitting on table already');

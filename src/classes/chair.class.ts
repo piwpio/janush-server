@@ -5,7 +5,7 @@ import { Response } from "./response.class";
 import { RMChairChange } from "../models/response.model";
 
 export class Chair {
-  private readonly id: ChairId;
+  public readonly id: ChairId;
   public playerId: PlayerId = null;
   public isBusy = false;
   public isReady = false;

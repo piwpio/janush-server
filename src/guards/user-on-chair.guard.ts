@@ -9,7 +9,7 @@ export class UserOnChair implements CanActivate {
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
     let client = context.getArgs()[0];
-    if (TableService.isUserOnChair(client.id)) {
+    if (TableService.isPlayerOnChair(client.id)) {
       return true;
     } else {
       throw new WsException('User is not on chair');
@@ -23,7 +23,7 @@ export class UserNotOnChair implements CanActivate {
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
     let client = context.getArgs()[0];
-    if (!TableService.isUserOnChair(client.id)) {
+    if (!TableService.isPlayerOnChair(client.id)) {
       return true;
     } else {
       throw new WsException('User is sitting on chair already');
