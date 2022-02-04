@@ -5,7 +5,7 @@ import { TableService } from "../services/table.service";
 import { PARAM } from "../models/param.model";
 
 @Injectable()
-export class UserReadyGuard implements CanActivate {
+export class PlayerReadyGuard implements CanActivate {
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {

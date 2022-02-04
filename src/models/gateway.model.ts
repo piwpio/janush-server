@@ -6,7 +6,7 @@ export enum GATEWAY {
   PLAYER_REGISTER = 'player_register',
   TABLE_SIT_TO = 'table_sit_down',
   TABLE_STAND_FROM = 'table_stand_up',
-  CHAIR_PLAYER_IS_READY = 'chair_player_is_ready',
+  CHAIR_PLAYER_SET_READY = 'chair_player_set_ready',
 }
 
 export interface PayloadPlayerRegister {

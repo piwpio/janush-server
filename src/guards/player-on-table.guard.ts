@@ -4,29 +4,29 @@ import { WsException } from "@nestjs/websockets";
 import { TableService } from "../services/table.service";
 
 @Injectable()
-export class UserOnChair implements CanActivate {
+export class PlayerOnTable implements CanActivate {
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
     let client = context.getArgs()[0];
-    if (TableService.isPlayerOnChair(client.id)) {
+    if (TableService.isPlayerOnTable(client.id)) {
       return true;
     } else {
-      throw new WsException('User is not on chair');
+      throw new WsException('User is not on table');
     }
   }
 }
 
 @Injectable()
-export class UserNotOnChair implements CanActivate {
+export class PlayerNotOnTable implements CanActivate {
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
     let client = context.getArgs()[0];
-    if (!TableService.isPlayerOnChair(client.id)) {
+    if (!TableService.isPlayerOnTable(client.id)) {
       return true;
     } else {
-      throw new WsException('User is sitting on chair already');
+      throw new WsException('User is sitting on table already');
     }
   }
 }
