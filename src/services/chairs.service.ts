@@ -15,6 +15,10 @@ export class ChairsService {
     return this.chairs[chairId];
   }
 
+  getOppositeChair(chair: Chair): Chair {
+    return this.chairs[chair.id === CHAIR_ID.ID1 ? CHAIR_ID.ID2 : CHAIR_ID.ID1];
+  }
+
   getPlayerChair(playerId: PlayerId): Chair {
     if (this.chairs[CHAIR_ID.ID1].playerId === playerId)
       return this.chairs[CHAIR_ID.ID1];

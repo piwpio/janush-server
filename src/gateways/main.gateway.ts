@@ -139,13 +139,16 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       playerChair.standUp(response);
 
       if (game.isGameStarted) {
-        if (game.currentRound >= GAME_MIN_ROUND_PLAYED_TO_GET_WIN_AFTER_SURRENDER) {
-          const winnerChair = this.chairsService.getOppositePlayerChair(playerId);
-          winnerChair.setReady(false, response);
+        const winnerChair = this.chairsService.getOppositeChair(playerChair);
+        winnerChair.setReady(false, response);
 
-          const winnerPlayerId = winnerChair.playerId;
-          response.add(game.getEndGameResponse(winnerPlayerId));
+        if (game.currentRound >= GAME_MIN_ROUND_PLAYED_TO_GET_WIN_AFTER_SURRENDER) {
+          const winnerPlayer = this.playersService.getPlayerById(winnerChair.playerId)
+          ++winnerPlayer.winstreak;
         }
+
+        const winnerPlayerId = winnerChair.playerId;
+        response.add(game.getEndGameResponse(winnerPlayerId));
 
         game.resetGame();
       }

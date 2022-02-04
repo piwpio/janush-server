@@ -14,7 +14,6 @@ export class PlayerExistsGuard implements CanActivate {
   ): boolean | Promise<boolean> | Observable<boolean> {
     let client = context.getArgs()[0];
     if (this.playersService.isPlayerExists(client.id)) {
-      console.log(`${client.id} exists`);
       return true;
     } else {
       throw new WsException('User is not exist');
