@@ -2,6 +2,11 @@ export enum PARAM {
   DATA_TYPE = 'data_type',
   DATA = 'data',
 
+  INIT_PLAYERS = 'init_players',
+  INIT_TABLE = 'init_table',
+  INIT_CHAIRS = 'init_chairs',
+  INIT_GAME = 'init_game',
+
   PLAYER_ID = 'player_id',
   PLAYER_NAME = 'player_name',
   PLAYER_WINSTREAK = 'player_winstreak',
@@ -24,6 +29,7 @@ export enum PARAM {
 }
 
 export enum DATA_TYPE {
+  INIT = 'init',
   PLAYER_REGISTER = 'player_register',
   PLAYER_CHANGE = 'player_change',
   TABLE_CHANGE = 'table_change',

@@ -17,17 +17,17 @@ export class Chair {
   sitDown(playerId: PlayerId, response: Response): void {
     this.isBusy = true;
     this.playerId = playerId;
-    response.add(this.getData());
+    response.add(this.getResponse());
   }
 
   standUp(response: Response): void {
     this.reset();
-    response.add(this.getData());
+    response.add(this.getResponse());
   }
 
   setReady(isReady: boolean, response: Response): void {
     this.isReady = isReady;
-    response.add(this.getData());
+    response.add(this.getResponse());
   }
 
   reset(): void {
@@ -36,7 +36,7 @@ export class Chair {
     this.isReady = false;
   }
 
-  getData(): RMChairChange {
+  getResponse(): RMChairChange {
     return {
       [PARAM.DATA_TYPE]: DATA_TYPE.CHAIR_CHANGE,
       [PARAM.DATA]: {

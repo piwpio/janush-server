@@ -13,15 +13,30 @@ import { PARAM } from "../models/param.model";
 import { UseGuards } from "@nestjs/common";
 import { PlayerExistsGuard, PlayerNotExistGuard } from "../guards/player-exists.guard";
 import { TableService } from "../services/table.service";
-import { PlayerNotOnChair, PlayerOnChair } from "../guards/player-on-chair.guard";
+import { PlayerOnChair } from "../guards/player-on-chair.guard";
 import { PlayerReadyGuard } from "../guards/player-ready.guard";
 import { PlayerNotOnTable, PlayerOnTable } from "../guards/player-on-table.guard";
 import { PlayerLimitGuard } from "../guards/player-limit.guard";
+import { DataService } from "../services/data.service";
 
 @WebSocketGateway(8080, { cors: true })
-export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   afterInit() {}
-  handleConnection(client: Socket) {}
+
+  handleConnection(client: Socket) {
+    const player = PlayersService.getPlayerById(client.id)
+    if (!player) return;
+
+    player.socket = client;
+
+    const initDataResponse = new Response();
+    DataService.addInitDataToResponse(initDataResponse);
+    player.socket.emit(GATEWAY.MAIN, initDataResponse.get());
+
+    const response = new Response();
+    player.afterRegister(response);
+    response.broadcast();
+  }
 
   @UseGuards(PlayerExistsGuard)
   handleDisconnect(client: Socket) {
@@ -40,6 +55,10 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   playerRegister(client: Socket, payload: PayloadPlayerRegister) {
     const newPlayer = new Player(client, payload[PARAM.PLAYER_NAME]);
     PlayersService.registerPlayer(newPlayer);
+
+    const initDataResponse = new Response();
+    DataService.addInitDataToResponse(initDataResponse);
+    newPlayer.socket.emit(GATEWAY.MAIN, initDataResponse.get());
 
     const response = new Response();
     newPlayer.afterRegister(response);

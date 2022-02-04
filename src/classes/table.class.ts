@@ -4,8 +4,9 @@ import { PlayersService } from "../services/players.service";
 import { Response } from "./response.class";
 import { Chair } from "./chair.class";
 import { GAME_ITEMS_PER_ROUND, GAME_MIN_ROUND_PLAYED_TO_GET_WIN_AFTER_SURRENDER, GAME_ROUNDS, GAME_START_TIMEOUT } from "../config";
-import { RMGameEnd, RMGameStart, RMTableChange } from "../models/response.model";
+import { RMChairChange, RMGameEnd, RMGameStart, RMTableChange } from "../models/response.model";
 import { CHAIR_ID_1, CHAIR_ID_2 } from "../models/chair.model";
+import { PlayerData } from "../models/player.model";
 
 export class Table {
   public chair1: Chair = new Chair(CHAIR_ID_1);
@@ -40,7 +41,7 @@ export class Table {
           winnerChair.setReady(false, response);
 
           const winnerPlayerId = winnerChair.playerId;
-          response.add(this.getEndGameData(winnerPlayerId));
+          response.add(this.getEndGameResponse(winnerPlayerId));
         }
 
         this.resetGame();
@@ -79,13 +80,13 @@ export class Table {
 
   private addToQueue(playerId: PlayerId, response: Response): void {
     this.queue.push(playerId)
-    response.add(this.getQueueData());
+    response.add(this.getResponse());
   }
 
   private removeFromQueue(playerId: PlayerId, response: Response): void {
     const index = this.queue.findIndex(queuePlayerId => queuePlayerId === playerId);
     this.queue.splice(index, 1);
-    response.add(this.getQueueData());
+    response.add(this.getResponse());
   }
 
   private getPlayerChair(playerId: PlayerId): Chair {
@@ -109,7 +110,7 @@ export class Table {
     }
 
     this.gameStartTs = Date.now() + GAME_START_TIMEOUT;
-    response.add(this.getNewGameData());
+    response.add(this.getNewGameResponse());
   }
 
   private resetGame(): void {
@@ -121,7 +122,7 @@ export class Table {
 
   // GET DATA REGION
 
-  private getQueueData(): RMTableChange {
+  private getResponse(): RMTableChange {
     const playersInQueue = [];
     this.queue.forEach(playerId => {
       const playerData = PlayersService.getPlayerById(playerId)?.getDataForQueue();
@@ -137,7 +138,7 @@ export class Table {
     };
   }
 
-  private getNewGameData(): RMGameStart {
+  private getNewGameResponse(): RMGameStart {
     return {
       [PARAM.DATA_TYPE]: DATA_TYPE.GAME_START,
       [PARAM.DATA]: {
@@ -147,12 +148,16 @@ export class Table {
     }
   }
 
-  private getEndGameData(playerWinnerId: PlayerId): RMGameEnd {
+  private getEndGameResponse(playerWinnerId: PlayerId): RMGameEnd {
     return {
       [PARAM.DATA_TYPE]: DATA_TYPE.GAME_END,
       [PARAM.DATA]: {
         [PARAM.GAME_WINNER]: PlayersService.getPlayerById(playerWinnerId)?.getDataFull()
       }
     }
+  }
+
+  getTableInitData(): [RMTableChange, RMChairChange, RMChairChange] {
+    return [this.getResponse(), this.chair1.getResponse(), this.chair2.getResponse()]
   }
 }

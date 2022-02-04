@@ -1,5 +1,6 @@
 import { ResponseModel, ResponseType } from "../models/response.model";
 import { SocketService } from "../services/socket.service";
+import { Socket } from "socket.io";
 
 export class Response {
   private response: ResponseType = [];

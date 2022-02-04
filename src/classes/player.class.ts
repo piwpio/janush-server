@@ -6,7 +6,7 @@ import { Response } from "./response.class";
 import { PlayerData, PlayerFullData } from "../models/player.model";
 
 export class Player {
-  public readonly socket: Socket;
+  public socket: Socket;
   public readonly id: PlayerId;
 
   // properties

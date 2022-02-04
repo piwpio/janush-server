@@ -1,15 +1,25 @@
 import { DATA_TYPE, PARAM } from "./param.model";
-import { ChairId, PlayerId } from "./types.model";
+import { ChairId } from "./types.model";
 import { PlayerData, PlayerFullData } from "./player.model";
 
 export type ResponseType = ResponseModel[];
 export type ResponseModel =
+  RMInitData |
   RMPlayerRegister | RMPlayerChange |
   RMTableChange |
   RMChairChange |
   RMGameStart | RMGameEnd;
 
 // RESPONSE MODELS
+export interface RMInitData {
+  [PARAM.DATA_TYPE]: DATA_TYPE.INIT;
+  [PARAM.DATA]: {
+    [PARAM.INIT_PLAYERS]: PlayerFullData[]
+    [PARAM.INIT_TABLE]: RMTableChange[PARAM.DATA]
+    [PARAM.INIT_CHAIRS]: RMChairChange[PARAM.DATA][]
+  }
+}
+
 export interface RMPlayerRegister {
   [PARAM.DATA_TYPE]: DATA_TYPE.PLAYER_REGISTER;
   [PARAM.DATA]: PlayerFullData
