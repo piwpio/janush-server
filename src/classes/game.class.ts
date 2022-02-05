@@ -7,18 +7,20 @@ import { ChairsService } from "../services/chairs.service";
 import { CHAIR_ID } from "../models/chair.model";
 import { PlayerFullData } from "../models/player.model";
 import { TableService } from "../services/table.service";
+import { Chair } from "./chair.class";
 
 export class Game {
   public isGameTimeoutStarted = false;
   public isGameStarted = false;
   public currentRound = -1;
   private gameItems: number[][] = [];
+  private gameFields: number[] = [];
   private gameStartTs = 0;
   private timeoutId = null;
   private nextUpdateTs = null;
 
   startGameTimeout(response: Response): void {
-    this.randomizeGameItems();
+    this.randomizeGameVariables();
     this.isGameTimeoutStarted = true;
     this.currentRound = -1;
     this.gameStartTs = Date.now() + GAME_START_TIMEOUT;
@@ -43,7 +45,7 @@ export class Game {
     if (this.currentRound < GAME_ROUNDS) {
       this.updateRound();
     } else {
-      this.endGame();
+      this.gameEnd();
     }
   }
 
@@ -55,7 +57,7 @@ export class Game {
     this.timeoutId = setTimeout(() => this.gameUpdate(), GAME_ROUND_TIME);
   }
 
-  private endGame(): void {
+  private gameEnd(): void {
     const response = new Response();
     const chairsService = ChairsService.getInstance();
     const playersService = PlayersService.getInstance();
@@ -66,7 +68,7 @@ export class Game {
     let winnerPlayerData = null;
 
     if (chair1.points !== chair2.points || table.queue.length < 2) {
-      let winnerPlayerChair;
+      let winnerPlayerChair: Chair;
       if (chair1.points !== chair2.points)
         winnerPlayerChair = chair1.points > chair2.points ? chair1 : chair2;
       else
@@ -99,6 +101,7 @@ export class Game {
     }
 
     response.add(this.getEndGameResponse(winnerPlayerData));
+    response.broadcast();
 
     this.resetGame();
   }
@@ -110,13 +113,16 @@ export class Game {
     this.isGameStarted = false;
     this.currentRound = -1;
     this.gameItems = [];
+    this.gameFields = [];
     this.gameStartTs = 0;
     this.timeoutId = null;
     this.nextUpdateTs = null;
   }
 
-  private randomizeGameItems(): void {
-    const array = Array.from({ length:40 }, (v,k) => k);
+  private randomizeGameVariables(): void {
+    const array = Array.from({ length: 40 }, (v,k) => k);
+    this.gameFields = array.sort(() => 0.5 - Math.random());
+
     for (let round = 0; round < GAME_ROUNDS; round++) {
       const shuffled = array.sort(() => 0.5 - Math.random());
       this.gameItems[round] = shuffled.slice(0, GAME_ITEMS_PER_ROUND);
@@ -127,7 +133,8 @@ export class Game {
     return {
       [PARAM.DATA_TYPE]: DATA_TYPE.GAME_COUNTDOWN,
       [PARAM.DATA]: {
-        [PARAM.GAME_START_TS]: this.gameStartTs
+        [PARAM.GAME_START_TS]: this.gameStartTs,
+        [PARAM.GAME_FIELDS]: this.gameFields
       }
     }
   }
@@ -135,7 +142,9 @@ export class Game {
   private getGameStartResponse(): RMGameStart {
     return {
       [PARAM.DATA_TYPE]: DATA_TYPE.GAME_START,
-      [PARAM.DATA]: {}
+      [PARAM.DATA]: {
+
+      }
     }
   }
 

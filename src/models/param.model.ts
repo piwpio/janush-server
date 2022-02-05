@@ -21,8 +21,8 @@ export enum PARAM {
   CHAIR_POINTS = 'chair_points',
   CHAIR_WINSTREAK = 'chair_winstreak',
 
-  GAME_START = 'game_start',
   GAME_START_TS = 'game_start_ts',
+  GAME_FIELDS = 'game_fields',
   GAME_ROUND = 'game_round',
   GAME_ROUND_ITEMS_IDS = 'game_round_items_ids',
   GAME_NEXT_UPDATE_TS = 'game_next_update_ts',

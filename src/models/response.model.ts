@@ -57,6 +57,7 @@ export interface RMGameCountdown {
   [PARAM.DATA_TYPE]: DATA_TYPE.GAME_COUNTDOWN;
   [PARAM.DATA]: {
     [PARAM.GAME_START_TS]: number;
+    [PARAM.GAME_FIELDS]: number[];
   };
 }
 

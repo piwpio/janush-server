@@ -41,6 +41,8 @@ export class Chair {
   setAfterGameLost(response: Response): void {
     this.isReady = false;
     this.points = 0;
+    this.winStreak = 0;
+
     response.add(this.getResponse());
   }
 
@@ -49,6 +51,7 @@ export class Chair {
     this.isBusy = false;
     this.isReady = false;
     this.points = 0;
+    this.winStreak = 0;
 
     response.add(this.getResponse());
   }
