@@ -1,5 +1,3 @@
-import { MEPLE_ID } from "./meple.model";
-
 export enum PARAM {
   DATA_TYPE = 'data_type',
   DATA = 'data',

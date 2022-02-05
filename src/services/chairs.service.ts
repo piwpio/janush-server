@@ -1,15 +1,14 @@
 import { Injectable } from "@nestjs/common";
 import { Chair } from "../classes/chair.class";
-import { CHAIR_ID } from "../models/chair.model";
-import { PlayerId } from "../models/types.model";
+import { GENERAL_ID, PlayerId } from "../models/types.model";
 import { RMChairChange } from "../models/response.model";
 
 @Injectable()
 export class ChairsService {
   private static instance: ChairsService;
   private readonly chairs: Chair[] = [
-    new Chair(CHAIR_ID.ID1),
-    new Chair(CHAIR_ID.ID2)
+    new Chair(GENERAL_ID.ID1),
+    new Chair(GENERAL_ID.ID2)
   ]
 
   constructor() {
@@ -20,28 +19,28 @@ export class ChairsService {
     return this.instance;
   }
 
-  getChair(chairId: CHAIR_ID): Chair {
+  getChair(chairId: GENERAL_ID): Chair {
     return this.chairs[chairId];
   }
 
   getOppositeChair(chair: Chair): Chair {
-    return this.chairs[chair.id === CHAIR_ID.ID1 ? CHAIR_ID.ID2 : CHAIR_ID.ID1];
+    return this.chairs[chair.id === GENERAL_ID.ID1 ? GENERAL_ID.ID2 : GENERAL_ID.ID1];
   }
 
   getPlayerChair(playerId: PlayerId): Chair {
-    if (this.chairs[CHAIR_ID.ID1].playerId === playerId)
-      return this.chairs[CHAIR_ID.ID1];
-    else if (this.chairs[CHAIR_ID.ID2].playerId === playerId)
-      return this.chairs[CHAIR_ID.ID2];
+    if (this.chairs[GENERAL_ID.ID1].playerId === playerId)
+      return this.chairs[GENERAL_ID.ID1];
+    else if (this.chairs[GENERAL_ID.ID2].playerId === playerId)
+      return this.chairs[GENERAL_ID.ID2];
 
     return null
   }
 
   getOppositePlayerChair(playerId: PlayerId): Chair {
-    if (this.chairs[CHAIR_ID.ID1].playerId === playerId)
-      return this.chairs[CHAIR_ID.ID2];
-    else if (this.chairs[CHAIR_ID.ID2].playerId === playerId)
-      return this.chairs[CHAIR_ID.ID1];
+    if (this.chairs[GENERAL_ID.ID1].playerId === playerId)
+      return this.chairs[GENERAL_ID.ID2];
+    else if (this.chairs[GENERAL_ID.ID2].playerId === playerId)
+      return this.chairs[GENERAL_ID.ID1];
 
     return null
   }
@@ -59,6 +58,6 @@ export class ChairsService {
   }
 
   getChairsResponse(): [RMChairChange, RMChairChange] {
-    return [this.chairs[CHAIR_ID.ID1].getResponse(), this.chairs[CHAIR_ID.ID2].getResponse()]
+    return [this.chairs[GENERAL_ID.ID1].getResponse(), this.chairs[GENERAL_ID.ID2].getResponse()]
   }
 }

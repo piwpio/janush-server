@@ -17,15 +17,13 @@ import { PlayerLimitGuard } from "../guards/player-limit.guard";
 import { DataService } from "../services/data.service";
 import { ChairsService } from "../services/chairs.service";
 import { GameService } from "../services/game.service";
-import { CHAIR_ID } from "../models/chair.model";
 import { PlayerOnChair } from "../guards/player-on-chair.guard";
 import { PlayerReadyGuard } from "../guards/player-ready.guard";
 import { PARAM } from "../models/param.model";
-import { GAME_FIELDS, GAME_MIN_ROUND_PLAYED_TO_GET_WIN_AFTER_SURRENDER, GAME_POWER_POINTS } from "../config";
-import { PlayerId } from "../models/types.model";
+import { GAME_FIELDS, GAME_POWER_POINTS } from "../config";
 import { GameStarted } from "../guards/game-started.guard";
 import { MeplesService } from "../services/meples.service";
-import { MOVE_DIRECTION } from "../models/meple.model";
+import { GENERAL_ID, MOVE_DIRECTION } from "../models/types.model";
 
 @WebSocketGateway(8080, { cors: true })
 export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
@@ -93,8 +91,8 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   tableSitTo(client: Socket) {
     const playerId = client.id
     const response = new Response();
-    const chair1 = this.chairsService.getChair(CHAIR_ID.ID1);
-    const chair2 = this.chairsService.getChair(CHAIR_ID.ID2);
+    const chair1 = this.chairsService.getChair(GENERAL_ID.ID1);
+    const chair2 = this.chairsService.getChair(GENERAL_ID.ID2);
     const table = this.tableService.getTable();
 
     if (!chair1.isBusy) {
@@ -126,7 +124,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     this.chairsService.getPlayerChair(playerId)?.setReady(isReady, response);
 
-    if (this.chairsService.getChair(CHAIR_ID.ID1).isReady && this.chairsService.getChair(CHAIR_ID.ID2).isReady) {
+    if (this.chairsService.getChair(GENERAL_ID.ID1).isReady && this.chairsService.getChair(GENERAL_ID.ID2).isReady) {
       const game = this.gameService.getGame();
       game.startGameTimeout(response)
     }

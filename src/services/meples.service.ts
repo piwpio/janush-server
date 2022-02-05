@@ -1,14 +1,13 @@
 import { Injectable } from "@nestjs/common";
 import { Meple } from "../classes/meple.class";
-import { MEPLE_ID } from "../models/meple.model";
-import { CHAIR_ID } from "../models/chair.model";
+import { GENERAL_ID } from "../models/types.model";
 
 @Injectable()
 export class MeplesService {
   private static instance: MeplesService;
   private meples: Meple[] = [
-    new Meple(MEPLE_ID.ID1),
-    new Meple(MEPLE_ID.ID2)
+    new Meple(GENERAL_ID.ID1),
+    new Meple(GENERAL_ID.ID2)
   ]
 
   constructor() {
@@ -19,7 +18,7 @@ export class MeplesService {
     return this.instance;
   }
 
-  getMeple(mepleId: MEPLE_ID | CHAIR_ID): Meple {
+  getMeple(mepleId: GENERAL_ID): Meple {
     return this.meples[mepleId];
   }
 }

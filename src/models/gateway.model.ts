@@ -1,5 +1,5 @@
 import { PARAM } from "./param.model";
-import { MOVE_DIRECTION } from "./meple.model";
+import { MOVE_DIRECTION } from "./types.model";
 
 export enum GATEWAY {
   MAIN = 'main',

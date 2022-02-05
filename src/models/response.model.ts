@@ -1,7 +1,6 @@
 import { DATA_TYPE, PARAM } from "./param.model";
 import { PlayerData, PlayerFullData } from "./player.model";
-import { CHAIR_ID } from "./chair.model";
-import { MEPLE_ID } from "./meple.model";
+import { GENERAL_ID } from "./types.model";
 
 export type ResponseType = ResponseModel[];
 export type ResponseModel =
@@ -47,7 +46,7 @@ export interface RMTableChange {
 export interface RMChairChange {
   [PARAM.DATA_TYPE]: DATA_TYPE.CHAIR_CHANGE;
   [PARAM.DATA]: {
-    [PARAM.CHAIR_ID]: CHAIR_ID;
+    [PARAM.CHAIR_ID]: GENERAL_ID;
     [PARAM.CHAIR_PLAYER]?: PlayerData;
     [PARAM.CHAIR_PLAYER_IS_READY]?: boolean;
     [PARAM.CHAIR_POINTS]?: number,
@@ -94,7 +93,7 @@ export interface RMGameMepleCollect {
 export interface RMepleChange {
   [PARAM.DATA_TYPE]: DATA_TYPE.MEPLE_CHANGE;
   [PARAM.DATA]: {
-    [PARAM.MEPLE_ID]: MEPLE_ID;
+    [PARAM.MEPLE_ID]: GENERAL_ID;
     [PARAM.MEPLE_FIELD_INDEX]: number;
     [PARAM.MEPLE_POINTS]: number;
   };

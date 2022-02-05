@@ -1,15 +1,14 @@
-import { MEPLE_ID, MOVE_DIRECTION } from "../models/meple.model";
-import { GAME_FIELDS } from "../config";
 import { RMepleChange } from "../models/response.model";
 import { Response } from "./response.class";
 import { DATA_TYPE, PARAM } from "../models/param.model";
+import { GENERAL_ID } from "../models/types.model";
 
 export class Meple {
-  public readonly id: MEPLE_ID;
+  public readonly id: GENERAL_ID;
   public fieldIndex: number;
   public points = 0;
 
-  constructor(mepleId: MEPLE_ID) {
+  constructor(mepleId: GENERAL_ID) {
     this.id = mepleId
   }
 

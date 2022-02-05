@@ -1,13 +1,13 @@
 import { Response } from "./response.class";
 import { GAME_FIELDS, GAME_ITEMS_PER_ROUND, GAME_ROUND_TIME, GAME_ROUNDS, GAME_START_TIMEOUT } from "../config";
-import { RMGameCountdown, RMGameEnd, RMGameMepleCollect, RMGameStart, RMGameUpdate } from "../models/response.model";
+import { RMGameCountdown, RMGameEnd, RMGameStart, RMGameUpdate } from "../models/response.model";
 import { DATA_TYPE, PARAM } from "../models/param.model";
 import { PlayersService } from "../services/players.service";
 import { ChairsService } from "../services/chairs.service";
-import { CHAIR_ID } from "../models/chair.model";
 import { PlayerFullData } from "../models/player.model";
 import { TableService } from "../services/table.service";
 import { Chair } from "./chair.class";
+import { GENERAL_ID } from "../models/types.model";
 
 export class Game {
   public isGameTimeoutStarted = false;
@@ -64,8 +64,8 @@ export class Game {
     const playersService = PlayersService.getInstance();
     const table = TableService.getInstance().getTable();
 
-    const chair1 = chairsService.getChair(CHAIR_ID.ID1);
-    const chair2 = chairsService.getChair(CHAIR_ID.ID2);
+    const chair1 = chairsService.getChair(GENERAL_ID.ID1);
+    const chair2 = chairsService.getChair(GENERAL_ID.ID2);
     let winnerPlayerData = null;
 
     if (chair1.points !== chair2.points || table.queue.length < 2) {
