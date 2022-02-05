@@ -20,10 +20,10 @@ import { GameService } from "../services/game.service";
 import { PlayerOnChair } from "../guards/player-on-chair.guard";
 import { PlayerReadyGuard } from "../guards/player-ready.guard";
 import { PARAM } from "../models/param.model";
-import { GAME_FIELDS, GAME_POWER_POINTS } from "../config";
+import { GAME_POWER_POINTS } from "../config";
 import { GameStarted } from "../guards/game-started.guard";
 import { MeplesService } from "../services/meples.service";
-import { GENERAL_ID, MOVE_DIRECTION } from "../models/types.model";
+import { GENERAL_ID } from "../models/types.model";
 
 @WebSocketGateway(8080, { cors: true })
 export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
@@ -141,14 +141,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     const playerChair = this.chairsService.getPlayerChair(playerId);
     const playerMepel = this.meplesService.getMeple(playerChair.id);
 
-    if (moveDirection === MOVE_DIRECTION.ASC) {
-      ++playerMepel.fieldIndex;
-      if (playerMepel.fieldIndex >= GAME_FIELDS) playerMepel.fieldIndex = 0;
-    } else {
-      --playerMepel.fieldIndex;
-      if (playerMepel.fieldIndex < 0) playerMepel.fieldIndex = GAME_FIELDS - 1;
-    }
-    playerMepel.addResponse(response);
+    playerMepel.move(moveDirection, response);
 
     response.broadcast();
   }
@@ -165,15 +158,9 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     const roundActiveFields = game.roundItems[game.currentRound]
     const fieldIndex = roundActiveFields.findIndex(field => field === playerMepel.fieldIndex);
     if (fieldIndex > -1) {
-      if (fieldIndex === 0) {
-        playerMepel.points += GAME_POWER_POINTS;
-      } else {
-        ++playerMepel.points;
-      }
       roundActiveFields[fieldIndex] *= -1;
-
       game.addResponseAfterCollect(response);
-      playerMepel.addResponse(response);
+      playerMepel.collect(fieldIndex === 0 ? GAME_POWER_POINTS : 1, response);
 
       response.broadcast();
     }
