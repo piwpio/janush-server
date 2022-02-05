@@ -8,7 +8,7 @@ import {
 import { Socket } from 'socket.io';
 import { PlayersService } from "../services/players.service";
 import { Response } from "../classes/response.class";
-import { GATEWAY, PayloadChairPlayerIsReady, PayloadPlayerRegister } from "../models/gateway.model";
+import { GATEWAY, PayloadChairPlayerIsReady, PayloadMepleMove, PayloadPlayerRegister } from "../models/gateway.model";
 import { UseGuards } from "@nestjs/common";
 import { PlayerExistsGuard, PlayerNotExistGuard } from "../guards/player-exists.guard";
 import { TableService } from "../services/table.service";
@@ -21,8 +21,11 @@ import { CHAIR_ID } from "../models/chair.model";
 import { PlayerOnChair } from "../guards/player-on-chair.guard";
 import { PlayerReadyGuard } from "../guards/player-ready.guard";
 import { PARAM } from "../models/param.model";
-import { GAME_MIN_ROUND_PLAYED_TO_GET_WIN_AFTER_SURRENDER } from "../config";
+import { GAME_FIELDS, GAME_MIN_ROUND_PLAYED_TO_GET_WIN_AFTER_SURRENDER, GAME_POWER_POINTS } from "../config";
 import { PlayerId } from "../models/types.model";
+import { GameStarted } from "../guards/game-started.guard";
+import { MeplesService } from "../services/meples.service";
+import { MOVE_DIRECTION } from "../models/meple.model";
 
 @WebSocketGateway(8080, { cors: true })
 export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
@@ -30,6 +33,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     private playersService: PlayersService,
     private tableService: TableService,
     private chairsService: ChairsService,
+    private meplesService: MeplesService,
     private gameService: GameService,
     private dataService: DataService,
   ) {}
@@ -59,7 +63,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     const response = new Response();
 
     if (this.chairsService.isPlayerOnChair(playerId) || this.tableService.isPlayerInQueue(playerId)) {
-      this.tableStandFromLogic(client.id, response);
+      this.tableService.tableStandFromLogic(client.id, response);
     }
 
     const unregisteredPlayer = this.playersService.unregisterPlayerById(client.id);
@@ -108,7 +112,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   @SubscribeMessage(GATEWAY.TABLE_STAND_FROM)
   tableStandFrom(client: Socket) {
     const response = new Response();
-    this.tableStandFromLogic(client.id, response)
+    this.tableService.tableStandFromLogic(client.id, response)
 
     response.broadcast();
   }
@@ -130,31 +134,50 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     response.broadcast();
   }
 
-  private tableStandFromLogic(playerId: PlayerId, response: Response): void {
+  @UseGuards(PlayerExistsGuard, PlayerOnChair, GameStarted)
+  @SubscribeMessage(GATEWAY.MEPLE_MOVE)
+  mepleMove(client: Socket, payload: PayloadMepleMove) {
+    const playerId = client.id;
+    const moveDirection = payload[PARAM.MEPLE_MOVE_DIRECTION];
+    const response = new Response();
     const playerChair = this.chairsService.getPlayerChair(playerId);
-    const table = this.tableService.getTable();
-    const game = this.gameService.getGame()
+    const playerMepel = this.meplesService.getMeple(playerChair.id);
 
-    if (playerChair) {
-      playerChair.standUp(response);
+    if (moveDirection === MOVE_DIRECTION.ASC) {
+      ++playerMepel.fieldIndex;
+      if (playerMepel.fieldIndex >= GAME_FIELDS) playerMepel.fieldIndex = 0;
+    } else {
+      --playerMepel.fieldIndex;
+      if (playerMepel.fieldIndex < 0) playerMepel.fieldIndex = GAME_FIELDS - 1;
+    }
+    playerMepel.addResponse(response);
 
-      if (game.isGameStarted) {
-        const winnerChair = this.chairsService.getOppositeChair(playerChair);
-        winnerChair.setReady(false, response);
+    response.broadcast();
+  }
 
-        const winnerPlayer = this.playersService.getPlayerById(winnerChair.playerId)
-        if (game.currentRound >= GAME_MIN_ROUND_PLAYED_TO_GET_WIN_AFTER_SURRENDER) {
-          ++winnerPlayer.maxWinStreak;
-        }
+  @UseGuards(PlayerExistsGuard, PlayerOnChair, GameStarted)
+  @SubscribeMessage(GATEWAY.MEPLE_COLLECT)
+  mepleCollect(client: Socket) {
+    const playerId = client.id;
+    const response = new Response();
+    const game = this.gameService.getGame();
+    const playerChair = this.chairsService.getPlayerChair(playerId);
+    const playerMepel = this.meplesService.getMeple(playerChair.id);
 
-        const winnerPlayerData = winnerPlayer.getDataForEndGame();
-        response.add(game.getEndGameResponse(winnerPlayerData));
-
-        game.resetGame();
+    const roundActiveFields = game.roundItems[game.currentRound]
+    const fieldIndex = roundActiveFields.findIndex(field => field === playerMepel.fieldIndex);
+    if (fieldIndex > -1) {
+      if (fieldIndex === 0) {
+        playerMepel.points += GAME_POWER_POINTS;
+      } else {
+        ++playerMepel.points;
       }
+      roundActiveFields[fieldIndex] *= -1;
 
-    } else if (table.isPlayerInQueue(playerId)) {
-      table.removeFromQueue(playerId, response);
+      game.addResponseAfterCollect(response);
+      playerMepel.addResponse(response);
+
+      response.broadcast();
     }
   }
 }

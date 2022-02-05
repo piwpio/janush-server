@@ -1,3 +1,5 @@
+import { MEPLE_ID } from "./meple.model";
+
 export enum PARAM {
   DATA_TYPE = 'data_type',
   DATA = 'data',
@@ -26,7 +28,12 @@ export enum PARAM {
   GAME_ROUND = 'game_round',
   GAME_ROUND_ITEMS_IDS = 'game_round_items_ids',
   GAME_NEXT_UPDATE_TS = 'game_next_update_ts',
-  GAME_WINNER = 'game_winner'
+  GAME_WINNER = 'game_winner',
+
+  MEPLE_ID = 'meple_id',
+  MEPLE_FIELD_INDEX = 'meple_field_index',
+  MEPLE_MOVE_DIRECTION = 'meple_move_direction',
+  MEPLE_POINTS = 'meple_points'
 }
 
 export enum DATA_TYPE {
@@ -39,5 +46,7 @@ export enum DATA_TYPE {
   GAME_COUNTDOWN = 'game_countdown',
   GAME_START = 'game_start',
   GAME_UPDATE = 'game_update',
-  GAME_END = 'game_end'
+  GAME_END = 'game_end',
+  GAME_MEPLE_COLLECT = 'game_meple_collect',
+  MEPLE_CHANGE = 'meple_change'
 }

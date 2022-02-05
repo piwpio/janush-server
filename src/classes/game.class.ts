@@ -1,6 +1,6 @@
 import { Response } from "./response.class";
-import { GAME_ITEMS_PER_ROUND, GAME_ROUND_TIME, GAME_ROUNDS, GAME_START_TIMEOUT } from "../config";
-import { RMGameCountdown, RMGameEnd, RMGameStart, RMGameUpdate } from "../models/response.model";
+import { GAME_FIELDS, GAME_ITEMS_PER_ROUND, GAME_ROUND_TIME, GAME_ROUNDS, GAME_START_TIMEOUT } from "../config";
+import { RMGameCountdown, RMGameEnd, RMGameMepleCollect, RMGameStart, RMGameUpdate } from "../models/response.model";
 import { DATA_TYPE, PARAM } from "../models/param.model";
 import { PlayersService } from "../services/players.service";
 import { ChairsService } from "../services/chairs.service";
@@ -12,8 +12,9 @@ import { Chair } from "./chair.class";
 export class Game {
   public isGameTimeoutStarted = false;
   public isGameStarted = false;
+
   public currentRound = -1;
-  private gameItems: number[][] = [];
+  public roundItems: number[][] = [];
   private gameFields: number[] = [];
   private gameStartTs = 0;
   private timeoutId = null;
@@ -112,7 +113,7 @@ export class Game {
     this.isGameTimeoutStarted = false;
     this.isGameStarted = false;
     this.currentRound = -1;
-    this.gameItems = [];
+    this.roundItems = [];
     this.gameFields = [];
     this.gameStartTs = 0;
     this.timeoutId = null;
@@ -120,12 +121,12 @@ export class Game {
   }
 
   private randomizeGameVariables(): void {
-    const array = Array.from({ length: 40 }, (v,k) => k);
+    const array = Array.from({ length: GAME_FIELDS }, (v,k) => k);
     this.gameFields = array.sort(() => 0.5 - Math.random());
 
     for (let round = 0; round < GAME_ROUNDS; round++) {
       const shuffled = array.sort(() => 0.5 - Math.random());
-      this.gameItems[round] = shuffled.slice(0, GAME_ITEMS_PER_ROUND);
+      this.roundItems[round] = shuffled.slice(0, GAME_ITEMS_PER_ROUND);
     }
   }
 
@@ -153,7 +154,7 @@ export class Game {
       [PARAM.DATA_TYPE]: DATA_TYPE.GAME_UPDATE,
       [PARAM.DATA]: {
         [PARAM.GAME_ROUND]: this.currentRound,
-        [PARAM.GAME_ROUND_ITEMS_IDS]: this.gameItems[this.currentRound],
+        [PARAM.GAME_ROUND_ITEMS_IDS]: this.roundItems[this.currentRound],
         [PARAM.GAME_NEXT_UPDATE_TS]: this.nextUpdateTs
       }
     }
@@ -167,5 +168,14 @@ export class Game {
         // [PARAM.GAME_WINNER]: PlayersService.getInstance().getPlayerById(playerWinnerId)?.getDataFull()
       }
     }
+  }
+
+  addResponseAfterCollect(response: Response): void {
+    response.add({
+      [PARAM.DATA_TYPE]: DATA_TYPE.GAME_MEPLE_COLLECT,
+      [PARAM.DATA]: {
+        [PARAM.GAME_ROUND_ITEMS_IDS]: this.roundItems[this.currentRound],
+      }
+    });
   }
 }

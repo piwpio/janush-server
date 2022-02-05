@@ -8,4 +8,8 @@ export class GameService {
   getGame(): Game {
     return this.game;
   }
+
+  isGameStarted(): boolean {
+    return this.game.isGameStarted;
+  }
 }

@@ -1,18 +1,19 @@
-import { ChairId, PlayerId } from "../models/types.model";
+import { PlayerId } from "../models/types.model";
 import { DATA_TYPE, PARAM } from "../models/param.model";
 import { PlayersService } from "../services/players.service";
 import { Response } from "./response.class";
 import { RMChairChange } from "../models/response.model";
+import { CHAIR_ID } from "../models/chair.model";
 
 export class Chair {
-  public readonly id: ChairId;
+  public readonly id: CHAIR_ID;
   public playerId: PlayerId = null;
   public isBusy = false;
   public isReady = false;
   public points = 0;
   public winStreak = 0;
 
-  constructor(id: ChairId) {
+  constructor(id: CHAIR_ID) {
     this.id = id;
   }
 
