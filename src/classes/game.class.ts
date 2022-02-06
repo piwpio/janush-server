@@ -1,19 +1,19 @@
 import { Response } from "./response.class";
-import { GAME_FIELDS, GAME_ITEMS_PER_ROUND, GAME_ROUND_TIME, GAME_ROUNDS, GAME_START_TIMEOUT } from "../config";
-import { RMGameCountdown, RMGameEnd, RMGameStart, RMGameUpdate } from "../models/response.model";
+import { GAME_FIELDS, GAME_ITEMS_PER_ROUND, GAME_ROUND_TIME, GAME_ROUNDS, GAME_START_COUNTDOWN } from "../config";
+import { RMGameStart, RMGameEnd, RMGameUpdate } from "../models/response.model";
 import { DATA_TYPE, PARAM } from "../models/param.model";
 import { PlayersService } from "../services/players.service";
 import { ChairsService } from "../services/chairs.service";
 import { PlayerFullData } from "../models/player.model";
 import { TableService } from "../services/table.service";
-import { Chair } from "./chair.class";
 import { GENERAL_ID } from "../models/types.model";
+import { MeplesService } from "../services/meples.service";
+import { Meple } from "./meple.class";
 
 export class Game {
-  public isGameTimeoutStarted = false;
   public isGameStarted = false;
 
-  public currentRound = -1;
+  public currentRound = 0;
   public roundItems: number[][] = [];
   private gameFields: number[] = [];
   private gameStartTs = 0;
@@ -21,28 +21,21 @@ export class Game {
   private nextUpdateTs = null;
 
   startGameTimeout(response: Response): void {
+    this.isGameStarted = true;
+
     this.randomizeGameVariables();
-    this.isGameTimeoutStarted = true;
-    this.currentRound = -1;
-    this.gameStartTs = Date.now() + GAME_START_TIMEOUT;
+    this.currentRound = 0;
+    this.gameStartTs = Date.now() + GAME_START_COUNTDOWN;
+    this.timeoutId = setTimeout(() => this.startGame(), GAME_START_COUNTDOWN)
 
-    this.timeoutId = setTimeout(() => this.startGame(), GAME_START_TIMEOUT)
-
-    response.add(this.getGameCountdownResponse());
+    response.add(this.getGameStartResponse());
   }
 
   private startGame(): void {
-    const response = new Response();
-    this.isGameStarted = true;
-
-    response.add(this.getGameStartResponse());
-    response.broadcast();
-
     this.gameUpdate();
   }
 
   private gameUpdate(): void {
-    ++this.currentRound;
     if (this.currentRound < GAME_ROUNDS) {
       this.updateRound();
     } else {
@@ -51,10 +44,13 @@ export class Game {
   }
 
   private updateRound(): void {
-    const response = new Response();
     this.nextUpdateTs = Date.now();
+
+    const response = new Response();
     response.add(this.getGameUpdateResponse());
     response.broadcast();
+
+    ++this.currentRound;
     this.timeoutId = setTimeout(() => this.gameUpdate(), GAME_ROUND_TIME);
   }
 
@@ -62,34 +58,40 @@ export class Game {
     const response = new Response();
     const chairsService = ChairsService.getInstance();
     const playersService = PlayersService.getInstance();
+    const meplesService = MeplesService.getInstance();
     const table = TableService.getInstance().getTable();
 
     const chair1 = chairsService.getChair(GENERAL_ID.ID1);
+    const meple1 = meplesService.getMeple(GENERAL_ID.ID1);
     const chair2 = chairsService.getChair(GENERAL_ID.ID2);
+    const meple2 = meplesService.getMeple(GENERAL_ID.ID2);
+
     let winnerPlayerData = null;
 
-    if (chair1.points !== chair2.points || table.queue.length < 2) {
-      let winnerPlayerChair: Chair;
-      if (chair1.points !== chair2.points)
-        winnerPlayerChair = chair1.points > chair2.points ? chair1 : chair2;
-      else
-        winnerPlayerChair = !!Math.round(Math.random()) ? chair1 : chair2;
+    if (meple1.points !== meple2.points || table.queue.length < 2) {
+      let winnerMeple: Meple;
+      if (meple1.points !== meple2.points)  winnerMeple = meple1.points > meple2.points ? meple1 : meple2;
+      else                                  winnerMeple = !!Math.round(Math.random()) ? meple1 : meple2;
 
+      const winnerPlayerChair = chairsService.getChair(winnerMeple.id);
       const loserPlayerChair = chairsService.getOppositeChair(winnerPlayerChair);
-      winnerPlayerChair.setAfterGameWon(response);
+
+      winnerPlayerChair.setAfterGame(response);
+      loserPlayerChair.setAfterGame(response);
 
       const winnerPlayer = playersService.getPlayerById(winnerPlayerChair.playerId);
       const loserPlayer = playersService.getPlayerById(loserPlayerChair.playerId);
-      winnerPlayer.setAfterGameWon(winnerPlayerChair.winStreak, response);
+      winnerPlayer.setAfterGameWon(response);
       loserPlayer.setAfterGameLost(response);
 
       const nextPlayerId = table.getFirstFromQueue(response);
       if (nextPlayerId) {
         loserPlayerChair.standUp(response);
         loserPlayerChair.sitDown(nextPlayerId, response);
-      } else {
-        loserPlayerChair.setAfterGameLost(response);
       }
+
+      meple1.setAfterGameEnds();
+      meple2.setAfterGameEnds();
 
       winnerPlayerData = winnerPlayer.getDataForEndGame();
 
@@ -99,6 +101,8 @@ export class Game {
       chair2.standUp(response);
       chair1.sitDown(table.getFirstFromQueue(response), response);
       chair2.sitDown(table.getFirstFromQueue(response), response);
+      meple1.setAfterGameEnds();
+      meple2.setAfterGameEnds();
     }
 
     response.add(this.getEndGameResponse(winnerPlayerData));
@@ -110,9 +114,8 @@ export class Game {
   resetGame(): void {
     clearTimeout(this.timeoutId);
 
-    this.isGameTimeoutStarted = false;
     this.isGameStarted = false;
-    this.currentRound = -1;
+    this.currentRound = 0;
     this.roundItems = [];
     this.gameFields = [];
     this.gameStartTs = 0;
@@ -130,21 +133,12 @@ export class Game {
     }
   }
 
-  private getGameCountdownResponse(): RMGameCountdown {
-    return {
-      [PARAM.DATA_TYPE]: DATA_TYPE.GAME_COUNTDOWN,
-      [PARAM.DATA]: {
-        [PARAM.GAME_START_TS]: this.gameStartTs,
-        [PARAM.GAME_FIELDS]: this.gameFields
-      }
-    }
-  }
-
   private getGameStartResponse(): RMGameStart {
     return {
       [PARAM.DATA_TYPE]: DATA_TYPE.GAME_START,
       [PARAM.DATA]: {
-
+        [PARAM.GAME_START_TS]: this.gameStartTs,
+        [PARAM.GAME_FIELDS]: this.gameFields
       }
     }
   }
@@ -160,12 +154,12 @@ export class Game {
     }
   }
 
-  getEndGameResponse(winnerPlayerData: PlayerFullData = null): RMGameEnd {
+  getEndGameResponse(winnerPlayerData: PlayerFullData = null, loserPlayerData: PlayerFullData = null): RMGameEnd {
     return {
       [PARAM.DATA_TYPE]: DATA_TYPE.GAME_END,
       [PARAM.DATA]: {
-        [PARAM.GAME_WINNER]: winnerPlayerData
-        // [PARAM.GAME_WINNER]: PlayersService.getInstance().getPlayerById(playerWinnerId)?.getDataFull()
+        [PARAM.GAME_WINNER]: winnerPlayerData,
+        [PARAM.GAME_LOSER]: loserPlayerData
       }
     }
   }

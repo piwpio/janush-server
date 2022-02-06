@@ -1,30 +1,25 @@
 import { Injectable } from "@nestjs/common";
 import { Response } from "../classes/response.class";
 import { PlayersService } from "./players.service";
-import { DATA_TYPE, PARAM } from "../models/param.model";
 import { TableService } from "./table.service";
 import { ChairsService } from "./chairs.service";
+import { GENERAL_ID } from "../models/types.model";
+import { MeplesService } from "./meples.service";
 
 @Injectable()
 export class DataService {
   constructor(
     private playersService: PlayersService,
     private tableService: TableService,
-    private chairsService: ChairsService
+    private chairsService: ChairsService,
+    private meplesService: MeplesService,
   ) {}
 
   addInitDataToResponse(response: Response): void {
-    const playersData = this.playersService.getPlayersDataForInit();
-    const tableResponse = this.tableService.getTableResponse();
-    const [chair1Response, chair2Response] = this.chairsService.getChairsResponse();
-
-    response.add({
-      [PARAM.DATA_TYPE]: DATA_TYPE.INIT,
-      [PARAM.DATA]: {
-        [PARAM.INIT_PLAYERS]: playersData,
-        [PARAM.INIT_TABLE]: tableResponse[PARAM.DATA],
-        [PARAM.INIT_CHAIRS]: [chair1Response[PARAM.DATA], chair2Response[PARAM.DATA]]
-      }
-    })
+    response.add(this.tableService.getTable().getResponse());
+    response.add(this.chairsService.getChair(GENERAL_ID.ID1).getResponse());
+    response.add(this.chairsService.getChair(GENERAL_ID.ID2).getResponse());
+    response.add(this.meplesService.getMeple(GENERAL_ID.ID1).getResponse());
+    response.add(this.chairsService.getChair(GENERAL_ID.ID2).getResponse());
   }
 }

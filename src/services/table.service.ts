@@ -51,7 +51,9 @@ export class TableService {
         }
 
         const winnerPlayerData = winnerPlayer.getDataForEndGame();
-        response.add(game.getEndGameResponse(winnerPlayerData));
+        const loserPlayerData = winnerPlayer.getDataForEndGame();
+        const endGameResponse = game.getEndGameResponse(winnerPlayerData, loserPlayerData)
+        response.add(endGameResponse);
 
         game.resetGame();
       }

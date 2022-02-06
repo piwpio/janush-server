@@ -1,5 +1,5 @@
 export const MAX_PLAYERS = 10;
-export const GAME_START_TIMEOUT = 1000;
+export const GAME_START_COUNTDOWN = 1000;
 export const GAME_ROUNDS = 3;
 export const GAME_ROUND_TIME = 3000;
 export const GAME_ITEMS_PER_ROUND = 4;

@@ -44,9 +44,9 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     player.socket = client;
 
-    const initDataResponse = new Response();
-    this.dataService.addInitDataToResponse(initDataResponse);
-    player.socket.emit(GATEWAY.MAIN, initDataResponse.get());
+    // const initDataResponse = new Response();
+    // this.dataService.addInitDataToResponse(initDataResponse);
+    // player.socket.emit(GATEWAY.MAIN, initDataResponse.get());
 
     const response = new Response();
     player.addResponseAfterRegister(response);
@@ -77,12 +77,10 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     const initDataResponse = new Response();
     this.dataService.addInitDataToResponse(initDataResponse);
-
     newPlayer.socket.emit(GATEWAY.MAIN, initDataResponse.get());
 
     const broadcastResponse = new Response();
     newPlayer.addResponseAfterRegister(broadcastResponse);
-
     broadcastResponse.broadcast();
   }
 
@@ -139,9 +137,9 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     const moveDirection = payload[PARAM.MEPLE_MOVE_DIRECTION];
     const response = new Response();
     const playerChair = this.chairsService.getPlayerChair(playerId);
-    const playerMepel = this.meplesService.getMeple(playerChair.id);
+    const playerMeple = this.meplesService.getMeple(playerChair.id);
 
-    playerMepel.move(moveDirection, response);
+    playerMeple.move(moveDirection, response);
 
     response.broadcast();
   }
@@ -153,14 +151,14 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     const response = new Response();
     const game = this.gameService.getGame();
     const playerChair = this.chairsService.getPlayerChair(playerId);
-    const playerMepel = this.meplesService.getMeple(playerChair.id);
+    const playerMeple = this.meplesService.getMeple(playerChair.id);
 
     const roundActiveFields = game.roundItems[game.currentRound]
-    const fieldIndex = roundActiveFields.findIndex(field => field === playerMepel.fieldIndex);
+    const fieldIndex = roundActiveFields.findIndex(field => field === playerMeple.fieldIndex);
     if (fieldIndex > -1) {
       roundActiveFields[fieldIndex] *= -1;
       game.addResponseAfterCollect(response);
-      playerMepel.collect(fieldIndex === 0 ? GAME_POWER_POINTS : 1, response);
+      playerMeple.collect(fieldIndex === 0 ? GAME_POWER_POINTS : 1, response);
 
       response.broadcast();
     }

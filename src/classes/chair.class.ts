@@ -9,8 +9,6 @@ export class Chair {
   public playerId: PlayerId = null;
   public isBusy = false;
   public isReady = false;
-  public points = 0;
-  public winStreak = 0;
 
   constructor(id: GENERAL_ID) {
     this.id = id;
@@ -31,18 +29,8 @@ export class Chair {
     response.add(this.getResponse());
   }
 
-  setAfterGameWon(response: Response): void {
+  setAfterGame(response: Response): void {
     this.isReady = false;
-    this.points = 0;
-    ++this.winStreak;
-    response.add(this.getResponse());
-  }
-
-  setAfterGameLost(response: Response): void {
-    this.isReady = false;
-    this.points = 0;
-    this.winStreak = 0;
-
     response.add(this.getResponse());
   }
 
@@ -50,8 +38,6 @@ export class Chair {
     this.playerId = null;
     this.isBusy = false;
     this.isReady = false;
-    this.points = 0;
-    this.winStreak = 0;
 
     response.add(this.getResponse());
   }
@@ -63,9 +49,7 @@ export class Chair {
         [PARAM.CHAIR_ID]: this.id,
         [PARAM.CHAIR_PLAYER]:
           this.playerId ? PlayersService.getInstance().getPlayerById(this.playerId)?.getDataForChair() : null,
-        [PARAM.CHAIR_PLAYER_IS_READY]: this.isReady,
-        [PARAM.CHAIR_POINTS]: this.points,
-        [PARAM.CHAIR_WINSTREAK]: this.winStreak
+        [PARAM.CHAIR_PLAYER_IS_READY]: this.isReady
       }
     }
   }

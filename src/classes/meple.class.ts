@@ -2,7 +2,7 @@ import { RMepleChange } from "../models/response.model";
 import { Response } from "./response.class";
 import { DATA_TYPE, PARAM } from "../models/param.model";
 import { GENERAL_ID, MOVE_DIRECTION } from "../models/types.model";
-import { GAME_FIELDS, GAME_POWER_POINTS } from "../config";
+import { GAME_FIELDS } from "../config";
 
 export class Meple {
   public readonly id: GENERAL_ID;
@@ -10,7 +10,8 @@ export class Meple {
   public points = 0;
 
   constructor(mepleId: GENERAL_ID) {
-    this.id = mepleId
+    this.id = mepleId;
+    this.fieldIndex = this.id === GENERAL_ID.ID1 ? 0 : (GAME_FIELDS/2) - 1;
   }
 
   move(moveDirection: MOVE_DIRECTION, response: Response): void {
@@ -29,18 +30,27 @@ export class Meple {
     this.addResponse(response);
   }
 
-  addResponse(response: Response): void {
-    response.add({
-      [PARAM.DATA_TYPE]: DATA_TYPE.MEPLE_CHANGE,
-      [PARAM.DATA]: this.getData()
-    })
+  setAfterGameStarts(): void {
+    this.points = 0;
+    this.fieldIndex = this.id === GENERAL_ID.ID1 ? 0 : (GAME_FIELDS/2) - 1;
   }
 
-  getData(): RMepleChange[PARAM.DATA] {
+  setAfterGameEnds(): void {
+    this.points = 0;
+  }
+
+  addResponse(response: Response): void {
+    response.add(this.getResponse());
+  }
+
+  getResponse(): RMepleChange {
     return {
-      [PARAM.MEPLE_ID]: this.id,
-      [PARAM.MEPLE_FIELD_INDEX]: this.fieldIndex,
-      [PARAM.MEPLE_POINTS]: this.points
+      [PARAM.DATA_TYPE]: DATA_TYPE.MEPLE_CHANGE,
+      [PARAM.DATA]: {
+        [PARAM.MEPLE_ID]: this.id,
+        [PARAM.MEPLE_FIELD_INDEX]: this.fieldIndex,
+        [PARAM.MEPLE_POINTS]: this.points
+      }
     }
   }
 }

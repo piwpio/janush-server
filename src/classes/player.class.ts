@@ -12,6 +12,7 @@ export class Player {
   public readonly name = '';
   public winCounter = 0;
   public lostCounter = 0;
+  public winStreak = 0;
   public maxWinStreak = 0;
 
   constructor(socket, name) {
@@ -20,14 +21,16 @@ export class Player {
     this.name = name;
   }
 
-  setAfterGameWon(chairWinstreak: number, response: Response): void {
+  setAfterGameWon(response: Response): void {
     ++this.winCounter
-    this.maxWinStreak = Math.max(this.maxWinStreak, chairWinstreak)
+    ++this.winStreak;
+    this.maxWinStreak = Math.max(this.winStreak, this.maxWinStreak);
     this.addResponseAfterPlayerChange(response);
   }
 
   setAfterGameLost(response: Response): void {
     ++this.lostCounter;
+    this.winStreak = 0;
     this.addResponseAfterPlayerChange(response);
   }
 
@@ -55,6 +58,7 @@ export class Player {
     return {
       [PARAM.PLAYER_ID]: this.id,
       [PARAM.PLAYER_NAME]: this.name,
+      [PARAM.PLAYER_WINSTREAK]: this.winStreak,
       [PARAM.PLAYER_MAX_WINSTREAK]: this.maxWinStreak,
       [PARAM.PLAYER_WIN_COUNTER]: this.winCounter,
       [PARAM.PLAYER_LOST_COUNTER]: this.lostCounter
