@@ -7,7 +7,7 @@ export type ResponseModel =
   RMPlayerRegister | RMPlayerUnRegister| RMPlayerChange |
   RMTableChange |
   RMChairChange |
-  RMGameStart | RMGameUpdate | RMGameEnd | RMGameMepleCollect |
+  RMGameInit | RMGameUpdate | RMGameEnd | RMGameMepleCollect |
   RMepleChange;
 
 export type ResponseDataType = ResponseDataModel[];
@@ -15,7 +15,7 @@ export type ResponseDataModel =
   PlayerFullData | PlayerData |
   RMTableChangeData |
   RMChairChangeData |
-  RMGameStartData | RMGameUpdateData | RMGameEndData | RMGameMepleCollectData |
+  RMGameInitData | RMGameUpdateData | RMGameEndData | RMGameMepleCollectData |
   RMepleChangeData;
 
 // RESPONSE MODELS
@@ -52,11 +52,11 @@ export interface RMChairChangeData {
   [PARAM.CHAIR_PLAYER_IS_READY]: boolean;
 }
 
-export interface RMGameStart {
-  [PARAM.DATA_TYPE]: DATA_TYPE.GAME_START;
-  [PARAM.DATA]: RMGameStartData;
+export interface RMGameInit {
+  [PARAM.DATA_TYPE]: DATA_TYPE.GAME_INIT;
+  [PARAM.DATA]: RMGameInitData;
 }
-export interface RMGameStartData {
+export interface RMGameInitData {
   [PARAM.GAME_START_TS]: number;
   [PARAM.GAME_FIELDS]: number[];
 }

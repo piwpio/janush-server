@@ -35,13 +35,12 @@ export enum PARAM {
 }
 
 export enum DATA_TYPE {
-  INIT = 'init',
   PLAYER_REGISTER = 'player_register',
   PLAYER_UNREGISTER = 'player_unregister',
   PLAYER_CHANGE = 'player_change',
   TABLE_CHANGE = 'table_change',
   CHAIR_CHANGE = 'chair_change',
-  GAME_START = 'game_start',
+  GAME_INIT = 'game_init',
   GAME_UPDATE = 'game_update',
   GAME_END = 'game_end',
   GAME_MEPLE_COLLECT = 'game_meple_collect',

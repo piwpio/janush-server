@@ -1,6 +1,6 @@
 import { Response } from "./response.class";
 import { GAME_FIELDS, GAME_ITEMS_PER_ROUND, GAME_ROUND_TIME, GAME_ROUNDS, GAME_START_COUNTDOWN } from "../config";
-import { RMGameStart, RMGameEnd, RMGameUpdate } from "../models/response.model";
+import { RMGameInit, RMGameEnd, RMGameUpdate, RMGameMepleCollect } from "../models/response.model";
 import { DATA_TYPE, PARAM } from "../models/param.model";
 import { PlayersService } from "../services/players.service";
 import { ChairsService } from "../services/chairs.service";
@@ -12,13 +12,16 @@ import { Meple } from "./meple.class";
 
 export class Game {
   public isGameStarted = false;
-
   public currentRound = 0;
   public roundItems: number[][] = [];
   private gameFields: number[] = [];
   private gameStartTs = 0;
   private timeoutId = null;
   private nextUpdateTs = null;
+
+  constructor() {
+    this.randomizeGameVariables();
+  }
 
   startGameTimeout(response: Response): void {
     this.isGameStarted = true;
@@ -28,7 +31,7 @@ export class Game {
     this.gameStartTs = Date.now() + GAME_START_COUNTDOWN;
     this.timeoutId = setTimeout(() => this.startGame(), GAME_START_COUNTDOWN)
 
-    response.add(this.getGameStartResponse());
+    response.add(this.getInitResponse());
   }
 
   private startGame(): void {
@@ -47,7 +50,7 @@ export class Game {
     this.nextUpdateTs = Date.now();
 
     const response = new Response();
-    response.add(this.getGameUpdateResponse());
+    response.add(this.getUpdateResponse());
     response.broadcast();
 
     ++this.currentRound;
@@ -105,7 +108,7 @@ export class Game {
       meple2.setAfterGameEnds();
     }
 
-    response.add(this.getEndGameResponse(winnerPlayerData));
+    response.add(this.getEndResponse(winnerPlayerData));
     response.broadcast();
 
     this.resetGame();
@@ -133,9 +136,9 @@ export class Game {
     }
   }
 
-  private getGameStartResponse(): RMGameStart {
+  getInitResponse(): RMGameInit {
     return {
-      [PARAM.DATA_TYPE]: DATA_TYPE.GAME_START,
+      [PARAM.DATA_TYPE]: DATA_TYPE.GAME_INIT,
       [PARAM.DATA]: {
         [PARAM.GAME_START_TS]: this.gameStartTs,
         [PARAM.GAME_FIELDS]: this.gameFields
@@ -143,18 +146,7 @@ export class Game {
     }
   }
 
-  private getGameUpdateResponse(): RMGameUpdate {
-    return {
-      [PARAM.DATA_TYPE]: DATA_TYPE.GAME_UPDATE,
-      [PARAM.DATA]: {
-        [PARAM.GAME_ROUND]: this.currentRound,
-        [PARAM.GAME_ROUND_ITEMS_IDS]: this.roundItems[this.currentRound],
-        [PARAM.GAME_NEXT_UPDATE_TS]: this.nextUpdateTs
-      }
-    }
-  }
-
-  getEndGameResponse(winnerPlayerData: PlayerFullData = null, loserPlayerData: PlayerFullData = null): RMGameEnd {
+  getEndResponse(winnerPlayerData: PlayerFullData = null, loserPlayerData: PlayerFullData = null): RMGameEnd {
     return {
       [PARAM.DATA_TYPE]: DATA_TYPE.GAME_END,
       [PARAM.DATA]: {
@@ -165,11 +157,26 @@ export class Game {
   }
 
   addResponseAfterCollect(response: Response): void {
-    response.add({
+    response.add(this.getMepleCollectResponse());
+  }
+
+  private getUpdateResponse(): RMGameUpdate {
+    return {
+      [PARAM.DATA_TYPE]: DATA_TYPE.GAME_UPDATE,
+      [PARAM.DATA]: {
+        [PARAM.GAME_ROUND]: this.currentRound,
+        [PARAM.GAME_ROUND_ITEMS_IDS]: this.roundItems[this.currentRound],
+        [PARAM.GAME_NEXT_UPDATE_TS]: this.nextUpdateTs
+      }
+    }
+  }
+
+  getMepleCollectResponse(): RMGameMepleCollect {
+    return {
       [PARAM.DATA_TYPE]: DATA_TYPE.GAME_MEPLE_COLLECT,
       [PARAM.DATA]: {
         [PARAM.GAME_ROUND_ITEMS_IDS]: this.roundItems[this.currentRound],
       }
-    });
+    }
   }
 }
