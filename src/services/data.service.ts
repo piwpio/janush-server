@@ -20,6 +20,6 @@ export class DataService {
     response.add(this.chairsService.getChair(GENERAL_ID.ID1).getResponse());
     response.add(this.chairsService.getChair(GENERAL_ID.ID2).getResponse());
     response.add(this.meplesService.getMeple(GENERAL_ID.ID1).getResponse());
-    response.add(this.chairsService.getChair(GENERAL_ID.ID2).getResponse());
+    response.add(this.meplesService.getMeple(GENERAL_ID.ID2).getResponse());
   }
 }

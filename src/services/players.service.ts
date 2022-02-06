@@ -32,7 +32,6 @@ export class PlayersService {
   unregisterPlayerById(playerId: PlayerId): Player {
     const index = this.players.findIndex(player => player.id === playerId);
     const deleted = this.players.splice(index, 1);
-    console.log(deleted);
     return deleted[0];
   }
 

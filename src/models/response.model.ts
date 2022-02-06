@@ -48,7 +48,7 @@ export interface RMChairChange {
 }
 export interface RMChairChangeData {
   [PARAM.CHAIR_ID]: GENERAL_ID;
-  [PARAM.CHAIR_PLAYER]: PlayerData;
+  [PARAM.CHAIR_PLAYER]: PlayerData | null;
   [PARAM.CHAIR_PLAYER_IS_READY]: boolean;
 }
 

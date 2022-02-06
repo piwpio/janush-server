@@ -58,6 +58,11 @@ export class TableService {
         game.resetGame();
       }
 
+      const nextPlayerId = table.getFirstFromQueue(response);
+      if (nextPlayerId) {
+        playerChair.sitDown(nextPlayerId, response);
+      }
+
     } else if (table.isPlayerInQueue(playerId)) {
       table.removeFromQueue(playerId, response);
     }
