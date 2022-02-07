@@ -71,9 +71,12 @@ export class Game {
     const meple2 = meplesService.getMeple(GENERAL_ID.ID2);
 
     let winnerPlayerData = null;
+    let loserPlayerData = null;
+    let winnerPoints = null;
+    let loserPoints = null;
 
     if (meple1.points !== meple2.points || table.queue.length < 2) {
-      // If draw and players i queue 1/0 - random winner
+      // If draw and players in queue 1/0 - random winner
       let winnerMeple: Meple;
       if (meple1.points !== meple2.points)  winnerMeple = meple1.points > meple2.points ? meple1 : meple2;
       else                                  winnerMeple = !!Math.round(Math.random()) ? meple1 : meple2;
@@ -83,7 +86,7 @@ export class Game {
       const winnerPlayer = playersService.getPlayerById(winnerPlayerChair.playerId);
       const loserPlayer = playersService.getPlayerById(loserPlayerChair.playerId);
 
-      // Order is important, add points to players and then update chair data with nowe player data
+      // Order is important, add points to players and then update chair data with new player data
       winnerPlayer.setAfterGameWon(response);
       loserPlayer.setAfterGameLost(response);
       winnerPlayerChair.setAfterGame(response);
@@ -95,10 +98,15 @@ export class Game {
         loserPlayerChair.sitDown(nextPlayerId, response);
       }
 
+      winnerPlayerData = winnerPlayer.getDataForEndGame();
+      loserPlayerData = loserPlayer.getDataForEndGame();
+      winnerPoints = winnerMeple.points;
+      loserPoints = meplesService.getOppositeMeple(winnerMeple).points;
+
+      console.log(winnerMeple, winnerPoints, meplesService.getOppositeMeple(winnerMeple), loserPoints)
+
       meple1.setAfterGameEnds();
       meple2.setAfterGameEnds();
-
-      winnerPlayerData = winnerPlayer.getDataForEndGame();
 
     } else {
       // Do domu obydwaj wypierdalać już!
@@ -110,7 +118,7 @@ export class Game {
       meple2.setAfterGameEnds();
     }
 
-    response.add(this.getEndResponse(winnerPlayerData));
+    response.add(this.getEndResponse(winnerPlayerData, loserPlayerData, winnerPoints, loserPoints));
     response.broadcast();
 
     this.resetGame();
@@ -157,12 +165,19 @@ export class Game {
     }
   }
 
-  getEndResponse(winnerPlayerData: PlayerFullData = null, loserPlayerData: PlayerFullData = null): RMGameEnd {
+  getEndResponse(
+    winnerPlayerData: PlayerFullData = null,
+    loserPlayerData: PlayerFullData = null,
+    winnerScore: number = null,
+    loserScore: number = null
+  ): RMGameEnd {
     return {
       [PARAM.DATA_TYPE]: DATA_TYPE.GAME_END,
       [PARAM.DATA]: {
         [PARAM.GAME_WINNER]: winnerPlayerData,
-        [PARAM.GAME_LOSER]: loserPlayerData
+        [PARAM.GAME_WINNER_SCORE]: winnerScore,
+        [PARAM.GAME_LOSER]: loserPlayerData,
+        [PARAM.GAME_LOSER_SCORE]: loserScore,
       }
     }
   }

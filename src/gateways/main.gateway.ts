@@ -139,9 +139,8 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     const moveDirection = payload[PARAM.MEPLE_MOVE_DIRECTION];
     const response = new Response();
     const playerChair = this.chairsService.getPlayerChair(playerId);
-    const enemyChair = this.chairsService.getOppositeChair(playerChair);
     const playerMeple = this.meplesService.getMeple(playerChair.id);
-    const enemyMeple = this.meplesService.getMeple(enemyChair.id);
+    const enemyMeple = this.meplesService.getOppositeMeple(playerMeple);
 
     if (moveDirection === MOVE_DIRECTION.ASC) {
       ++playerMeple.fieldIndex;
@@ -173,8 +172,8 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     // Object.is() is for comparing zeros ex:
     // 0 === -0 // true
     // Object.is(0, -0) // false
-    const fieldIndex = roundItems.findIndex(item => Object.is(item, itemOnPlayerField));
-    if (fieldIndex > -1) {
+    const fieldIndex = roundItems?.findIndex(item => Object.is(item, itemOnPlayerField));
+    if (fieldIndex && fieldIndex > -1) {
       roundItems[fieldIndex] *= -1;
       game.addResponseAfterCollect(response);
       playerMeple.collect(fieldIndex === 0 ? GAME_POWER_POINTS : 1, response);

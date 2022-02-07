@@ -78,8 +78,10 @@ export interface RMGameEnd {
   [PARAM.DATA]: RMGameEndData;
 }
 export interface RMGameEndData {
-  [PARAM.GAME_WINNER]: PlayerData;
-  [PARAM.GAME_LOSER]: PlayerData;
+  [PARAM.GAME_WINNER]: PlayerData | null;
+  [PARAM.GAME_LOSER]: PlayerData | null;
+  [PARAM.GAME_WINNER_SCORE]: number | null;
+  [PARAM.GAME_LOSER_SCORE]: number | null;
 }
 
 export interface RMGameMepleCollect {

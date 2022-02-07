@@ -28,7 +28,9 @@ export enum PARAM {
   GAME_ROUND_ITEMS = 'game_round_items',
   GAME_NEXT_UPDATE_TS = 'game_next_update_ts',
   GAME_WINNER = 'game_winner',
+  GAME_WINNER_SCORE = 'game_winner_score',
   GAME_LOSER = 'game_loser',
+  GAME_LOSER_SCORE = 'game_loser_score',
 
   MEPLE_ID = 'meple_id',
   MEPLE_FIELD_INDEX = 'meple_field_index',
