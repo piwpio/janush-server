@@ -1,6 +1,6 @@
 import { Response } from "./response.class";
 import { GAME_FIELDS, GAME_ITEMS_PER_ROUND, GAME_ROUND_TIME, GAME_ROUNDS, GAME_START_COUNTDOWN } from "../config";
-import { RMGameInit, RMGameEnd, RMGameUpdate, RMGameMepleCollect } from "../models/response.model";
+import { RMGameEnd, RMGameInit, RMGameMepleCollect, RMGameUpdate } from "../models/response.model";
 import { DATA_TYPE, PARAM } from "../models/param.model";
 import { PlayersService } from "../services/players.service";
 import { ChairsService } from "../services/chairs.service";
@@ -120,7 +120,6 @@ export class Game {
     this.isGameStarted = false;
     this.currentRound = 0;
     this.roundItems = [];
-    this.gameFields = [];
     this.gameStartTs = 0;
     this.timeoutId = null;
     this.nextUpdateTs = null;
@@ -137,11 +136,21 @@ export class Game {
   }
 
   getInitResponse(): RMGameInit {
+    const playersService = PlayersService.getInstance();
+    const chairsService = ChairsService.getInstance();
+    const player1Id = chairsService.getChair(GENERAL_ID.ID1).playerId;
+    const player2Id = chairsService.getChair(GENERAL_ID.ID2).playerId;
+
     return {
       [PARAM.DATA_TYPE]: DATA_TYPE.GAME_INIT,
       [PARAM.DATA]: {
         [PARAM.GAME_START_TS]: this.gameStartTs,
-        [PARAM.GAME_FIELDS]: this.gameFields
+        [PARAM.GAME_IS_ON]: this.isGameStarted,
+        [PARAM.GAME_FIELDS]: this.gameFields,
+        [PARAM.GAME_PLAYERS]: [
+          playersService.getPlayerById(player1Id)?.getDataForQueue(),
+          playersService.getPlayerById(player2Id)?.getDataForQueue()
+        ]
       }
     }
   }

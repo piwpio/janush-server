@@ -11,18 +11,7 @@ export class Meple {
 
   constructor(mepleId: GENERAL_ID) {
     this.id = mepleId;
-    this.fieldIndex = this.id === GENERAL_ID.ID1 ? 0 : (GAME_FIELDS/2) - 1;
-  }
-
-  move(moveDirection: MOVE_DIRECTION, response: Response): void {
-    if (moveDirection === MOVE_DIRECTION.ASC) {
-      ++this.fieldIndex;
-      if (this.fieldIndex >= GAME_FIELDS) this.fieldIndex = 0;
-    } else {
-      --this.fieldIndex;
-      if (this.fieldIndex < 0) this.fieldIndex = GAME_FIELDS - 1;
-    }
-    this.addResponse(response);
+    this.fieldIndex = this.id === GENERAL_ID.ID1 ? 0 : (GAME_FIELDS/2);
   }
 
   collect(points: number, response: Response): void {
@@ -30,9 +19,10 @@ export class Meple {
     this.addResponse(response);
   }
 
-  setAfterGameStarts(): void {
+  setAfterGameStarts(response: Response): void {
     this.points = 0;
-    this.fieldIndex = this.id === GENERAL_ID.ID1 ? 0 : (GAME_FIELDS/2) - 1;
+    this.fieldIndex = this.id === GENERAL_ID.ID1 ? 0 : (GAME_FIELDS/2);
+    this.addResponse(response);
   }
 
   setAfterGameEnds(): void {

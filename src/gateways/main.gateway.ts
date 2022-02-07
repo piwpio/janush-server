@@ -20,10 +20,10 @@ import { GameService } from "../services/game.service";
 import { PlayerOnChair } from "../guards/player-on-chair.guard";
 import { PlayerReadyGuard } from "../guards/player-ready.guard";
 import { PARAM } from "../models/param.model";
-import { GAME_POWER_POINTS } from "../config";
+import { GAME_FIELDS, GAME_POWER_POINTS } from "../config";
 import { GameStarted } from "../guards/game-started.guard";
 import { MeplesService } from "../services/meples.service";
-import { GENERAL_ID } from "../models/types.model";
+import { GENERAL_ID, MOVE_DIRECTION } from "../models/types.model";
 
 @WebSocketGateway(8080, { cors: true })
 export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
@@ -123,6 +123,8 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     this.chairsService.getPlayerChair(playerId)?.setReady(isReady, response);
 
     if (this.chairsService.getChair(GENERAL_ID.ID1).isReady && this.chairsService.getChair(GENERAL_ID.ID2).isReady) {
+      this.meplesService.getMeple(GENERAL_ID.ID1).setAfterGameStarts(response)
+      this.meplesService.getMeple(GENERAL_ID.ID2).setAfterGameStarts(response)
       const game = this.gameService.getGame();
       game.startGameTimeout(response)
     }
@@ -137,9 +139,20 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     const moveDirection = payload[PARAM.MEPLE_MOVE_DIRECTION];
     const response = new Response();
     const playerChair = this.chairsService.getPlayerChair(playerId);
+    const enemyChair = this.chairsService.getOppositeChair(playerChair);
     const playerMeple = this.meplesService.getMeple(playerChair.id);
+    const enemyMeple = this.meplesService.getMeple(enemyChair.id);
 
-    playerMeple.move(moveDirection, response);
+    if (moveDirection === MOVE_DIRECTION.ASC) {
+      ++playerMeple.fieldIndex;
+      if (playerMeple.fieldIndex >= GAME_FIELDS) playerMeple.fieldIndex = 0;
+      if (enemyMeple.fieldIndex === playerMeple.fieldIndex) ++playerMeple.fieldIndex;
+    } else {
+      --playerMeple.fieldIndex;
+      if (enemyMeple.fieldIndex === playerMeple.fieldIndex) --playerMeple.fieldIndex;
+      if (playerMeple.fieldIndex < 0) playerMeple.fieldIndex = GAME_FIELDS - 1;
+    }
+    playerMeple.addResponse(response);
 
     response.broadcast();
   }
