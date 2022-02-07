@@ -20,7 +20,7 @@ import { GameService } from "../services/game.service";
 import { PlayerOnChair } from "../guards/player-on-chair.guard";
 import { PlayerReadyGuard } from "../guards/player-ready.guard";
 import { PARAM } from "../models/param.model";
-import { GAME_FIELDS, GAME_POWER_POINTS } from "../config";
+import { COLLECT_COOLDOWN, GAME_FIELDS, GAME_POWER_POINTS } from "../config";
 import { GameNotStarted, GameStarted } from "../guards/game-started.guard";
 import { MeplesService } from "../services/meples.service";
 import { GENERAL_ID, MOVE_DIRECTION } from "../models/types.model";
@@ -160,11 +160,14 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   @SubscribeMessage(GATEWAY.MEPLE_COLLECT)
   mepleCollect(client: Socket) {
     const playerId = client.id;
-    const response = new Response();
-    const game = this.gameService.getGame();
     const playerChair = this.chairsService.getPlayerChair(playerId);
     const playerMeple = this.meplesService.getMeple(playerChair.id);
 
+    if (playerMeple.lastActionTs + COLLECT_COOLDOWN > Date.now()) return;
+    playerMeple.lastActionTs = Date.now();
+
+    const response = new Response();
+    const game = this.gameService.getGame();
     const fieldsMap = game.gameFieldsMap;
     const roundItems = game.roundItems[game.currentRound];
     const itemOnPlayerField = fieldsMap[playerMeple.fieldIndex];

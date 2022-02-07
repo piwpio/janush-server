@@ -103,8 +103,6 @@ export class Game {
       winnerPoints = winnerMeple.points;
       loserPoints = meplesService.getOppositeMeple(winnerMeple).points;
 
-      console.log(winnerMeple, winnerPoints, meplesService.getOppositeMeple(winnerMeple), loserPoints)
-
       meple1.setAfterGameEnds();
       meple2.setAfterGameEnds();
 
