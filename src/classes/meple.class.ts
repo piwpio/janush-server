@@ -1,7 +1,7 @@
 import { RMepleChange } from "../models/response.model";
 import { Response } from "./response.class";
 import { DATA_TYPE, PARAM } from "../models/param.model";
-import { GENERAL_ID, MOVE_DIRECTION } from "../models/types.model";
+import { GENERAL_ID } from "../models/types.model";
 import { GAME_FIELDS } from "../config";
 
 export class Meple {
