@@ -166,17 +166,20 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     if (playerMeple.lastActionTs + COLLECT_COOLDOWN > Date.now()) return;
     playerMeple.lastActionTs = Date.now();
 
-    const response = new Response();
     const game = this.gameService.getGame();
-    const fieldsMap = game.gameFieldsMap;
     const roundItems = game.roundItems[game.currentRound];
+    if (!roundItems) return;
+
+    const fieldsMap = game.gameFieldsMap;
     const itemOnPlayerField = fieldsMap[playerMeple.fieldIndex];
 
     // Object.is() is for comparing zeros ex:
     // 0 === -0 // true
     // Object.is(0, -0) // false
-    const fieldIndex = roundItems?.findIndex(item => Object.is(item, itemOnPlayerField));
-    if (fieldIndex && fieldIndex > -1) {
+    const fieldIndex = roundItems.findIndex(item => Object.is(item, itemOnPlayerField));
+    if (fieldIndex > -1) {
+      const response = new Response();
+
       roundItems[fieldIndex] *= -1;
       game.addResponseAfterCollect(response);
       playerMeple.collect(fieldIndex === 0 ? GAME_POWER_POINTS : 1, response);
