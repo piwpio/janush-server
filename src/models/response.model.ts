@@ -101,6 +101,3 @@ export interface RMepleChangeData {
   [PARAM.MEPLE_FIELD_INDEX]: number;
   [PARAM.MEPLE_POINTS]: number;
 }
-
-
-
