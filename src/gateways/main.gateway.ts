@@ -163,6 +163,8 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     const playerChair = this.chairsService.getPlayerChair(playerId);
     const playerMeple = this.meplesService.getMeple(playerChair.id);
 
+    //DEBUG
+    // const cooldown = playerMeple.lastActionTs + COLLECT_COOLDOWN > Date.now();
     if (playerMeple.lastActionTs + COLLECT_COOLDOWN > Date.now()) return;
     playerMeple.lastActionTs = Date.now();
 
@@ -177,6 +179,16 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     // 0 === -0 // true
     // Object.is(0, -0) // false
     const fieldIndex = roundItems.findIndex(item => Object.is(item, itemOnPlayerField));
+
+    // DEBUG
+    // console.log('##########################################')
+    // console.log('Player fieldIndex', playerMeple.fieldIndex)
+    // console.log('Item on player field', itemOnPlayerField)
+    // console.log('Round items', roundItems)
+    // console.log('Found?', fieldIndex > -1)
+    // console.log('Cooldown', cooldown)
+    // if (cooldown) return;
+
     if (fieldIndex > -1) {
       const response = new Response();
 
