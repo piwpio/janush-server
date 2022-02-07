@@ -19,3 +19,20 @@ export class GameStarted implements CanActivate {
     }
   }
 }
+
+@Injectable()
+export class GameNotStarted implements CanActivate {
+  constructor(
+    private gameService: GameService
+  ) {}
+
+  canActivate(
+    context: ExecutionContext,
+  ): boolean | Promise<boolean> | Observable<boolean> {
+    if (!this.gameService.isGameStarted()) {
+      return true;
+    } else {
+      throw new WsException('Game not started');
+    }
+  }
+}

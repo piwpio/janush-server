@@ -12,9 +12,9 @@ import { Meple } from "./meple.class";
 
 export class Game {
   public isGameStarted = false;
-  public currentRound = 0;
+  public currentRound = -1;
   public roundItems: number[][] = [];
-  private gameFields: number[] = [];
+  public gameFieldsMap: number[] = [];
   private gameStartTs = 0;
   private timeoutId = null;
   private nextUpdateTs = null;
@@ -27,7 +27,7 @@ export class Game {
     this.isGameStarted = true;
 
     this.randomizeGameVariables();
-    this.currentRound = 0;
+    this.currentRound = -1;
     this.gameStartTs = Date.now() + GAME_START_COUNTDOWN;
     this.timeoutId = setTimeout(() => this.startGame(), GAME_START_COUNTDOWN)
 
@@ -39,6 +39,8 @@ export class Game {
   }
 
   private gameUpdate(): void {
+    ++this.currentRound;
+
     if (this.currentRound < GAME_ROUNDS) {
       this.updateRound();
     } else {
@@ -53,7 +55,6 @@ export class Game {
     response.add(this.getUpdateResponse());
     response.broadcast();
 
-    ++this.currentRound;
     this.timeoutId = setTimeout(() => this.gameUpdate(), GAME_ROUND_TIME);
   }
 
@@ -72,20 +73,21 @@ export class Game {
     let winnerPlayerData = null;
 
     if (meple1.points !== meple2.points || table.queue.length < 2) {
+      // If draw and players i queue 1/0 - random winner
       let winnerMeple: Meple;
       if (meple1.points !== meple2.points)  winnerMeple = meple1.points > meple2.points ? meple1 : meple2;
       else                                  winnerMeple = !!Math.round(Math.random()) ? meple1 : meple2;
 
       const winnerPlayerChair = chairsService.getChair(winnerMeple.id);
       const loserPlayerChair = chairsService.getOppositeChair(winnerPlayerChair);
-
-      winnerPlayerChair.setAfterGame(response);
-      loserPlayerChair.setAfterGame(response);
-
       const winnerPlayer = playersService.getPlayerById(winnerPlayerChair.playerId);
       const loserPlayer = playersService.getPlayerById(loserPlayerChair.playerId);
+
+      // Order is important, add points to players and then update chair data with nowe player data
       winnerPlayer.setAfterGameWon(response);
       loserPlayer.setAfterGameLost(response);
+      winnerPlayerChair.setAfterGame(response);
+      loserPlayerChair.setAfterGame(response);
 
       const nextPlayerId = table.getFirstFromQueue(response);
       if (nextPlayerId) {
@@ -118,7 +120,7 @@ export class Game {
     clearTimeout(this.timeoutId);
 
     this.isGameStarted = false;
-    this.currentRound = 0;
+    this.currentRound = -1;
     this.roundItems = [];
     this.gameStartTs = 0;
     this.timeoutId = null;
@@ -127,10 +129,10 @@ export class Game {
 
   private randomizeGameVariables(): void {
     const array = Array.from({ length: GAME_FIELDS }, (v,k) => k);
-    this.gameFields = array.sort(() => 0.5 - Math.random());
+    this.gameFieldsMap = [...array].sort(() => 0.5 - Math.random());
 
     for (let round = 0; round < GAME_ROUNDS; round++) {
-      const shuffled = array.sort(() => 0.5 - Math.random());
+      const shuffled = [...array].sort(() => 0.5 - Math.random());
       this.roundItems[round] = shuffled.slice(0, GAME_ITEMS_PER_ROUND);
     }
   }
@@ -146,7 +148,7 @@ export class Game {
       [PARAM.DATA]: {
         [PARAM.GAME_START_TS]: this.gameStartTs,
         [PARAM.GAME_IS_ON]: this.isGameStarted,
-        [PARAM.GAME_FIELDS]: this.gameFields,
+        [PARAM.GAME_FIELDS]: this.gameFieldsMap,
         [PARAM.GAME_PLAYERS]: [
           playersService.getPlayerById(player1Id)?.getDataForQueue(),
           playersService.getPlayerById(player2Id)?.getDataForQueue()
@@ -165,26 +167,26 @@ export class Game {
     }
   }
 
-  addResponseAfterCollect(response: Response): void {
-    response.add(this.getMepleCollectResponse());
-  }
-
   private getUpdateResponse(): RMGameUpdate {
     return {
       [PARAM.DATA_TYPE]: DATA_TYPE.GAME_UPDATE,
       [PARAM.DATA]: {
         [PARAM.GAME_ROUND]: this.currentRound,
-        [PARAM.GAME_ROUND_ITEMS_IDS]: this.roundItems[this.currentRound],
+        [PARAM.GAME_ROUND_ITEMS]: this.roundItems[this.currentRound],
         [PARAM.GAME_NEXT_UPDATE_TS]: this.nextUpdateTs
       }
     }
   }
 
-  getMepleCollectResponse(): RMGameMepleCollect {
+  addResponseAfterCollect(response: Response): void {
+    response.add(this.getMepleCollectResponse());
+  }
+
+  private getMepleCollectResponse(): RMGameMepleCollect {
     return {
       [PARAM.DATA_TYPE]: DATA_TYPE.GAME_MEPLE_COLLECT,
       [PARAM.DATA]: {
-        [PARAM.GAME_ROUND_ITEMS_IDS]: this.roundItems[this.currentRound],
+        [PARAM.GAME_ROUND_ITEMS]: this.roundItems[this.currentRound],
       }
     }
   }

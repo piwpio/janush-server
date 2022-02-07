@@ -25,7 +25,7 @@ export enum PARAM {
   GAME_FIELDS = 'game_fields',
   GAME_PLAYERS = 'game_players',
   GAME_ROUND = 'game_round',
-  GAME_ROUND_ITEMS_IDS = 'game_round_items_ids',
+  GAME_ROUND_ITEMS = 'game_round_items',
   GAME_NEXT_UPDATE_TS = 'game_next_update_ts',
   GAME_WINNER = 'game_winner',
   GAME_LOSER = 'game_loser',

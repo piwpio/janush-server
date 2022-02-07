@@ -69,7 +69,7 @@ export interface RMGameUpdate {
 }
 export interface RMGameUpdateData {
   [PARAM.GAME_ROUND]: number;
-  [PARAM.GAME_ROUND_ITEMS_IDS]: number[];
+  [PARAM.GAME_ROUND_ITEMS]: number[];
   [PARAM.GAME_NEXT_UPDATE_TS]: number[];
 }
 
@@ -87,7 +87,7 @@ export interface RMGameMepleCollect {
   [PARAM.DATA]: RMGameMepleCollectData;
 }
 export interface RMGameMepleCollectData {
-  [PARAM.GAME_ROUND_ITEMS_IDS]: number[];
+  [PARAM.GAME_ROUND_ITEMS]: number[];
 }
 
 export interface RMepleChange {

@@ -21,7 +21,7 @@ import { PlayerOnChair } from "../guards/player-on-chair.guard";
 import { PlayerReadyGuard } from "../guards/player-ready.guard";
 import { PARAM } from "../models/param.model";
 import { GAME_FIELDS, GAME_POWER_POINTS } from "../config";
-import { GameStarted } from "../guards/game-started.guard";
+import { GameNotStarted, GameStarted } from "../guards/game-started.guard";
 import { MeplesService } from "../services/meples.service";
 import { GENERAL_ID, MOVE_DIRECTION } from "../models/types.model";
 
@@ -113,7 +113,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     response.broadcast();
   }
 
-  @UseGuards(PlayerExistsGuard, PlayerOnChair, PlayerReadyGuard)
+  @UseGuards(GameNotStarted, PlayerExistsGuard, PlayerOnChair, PlayerReadyGuard)
   @SubscribeMessage(GATEWAY.CHAIR_PLAYER_SET_READY)
   chairPlayerSetReady(client: Socket, payload: PayloadChairPlayerIsReady) {
     const playerId = client.id;
@@ -166,10 +166,16 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     const playerChair = this.chairsService.getPlayerChair(playerId);
     const playerMeple = this.meplesService.getMeple(playerChair.id);
 
-    const roundActiveFields = game.roundItems[game.currentRound]
-    const fieldIndex = roundActiveFields.findIndex(field => field === playerMeple.fieldIndex);
+    const fieldsMap = game.gameFieldsMap;
+    const roundItems = game.roundItems[game.currentRound];
+    const itemOnPlayerField = fieldsMap[playerMeple.fieldIndex];
+
+    // Object.is() is for comparing zeros ex:
+    // 0 === -0 // true
+    // Object.is(0, -0) // false
+    const fieldIndex = roundItems.findIndex(item => Object.is(item, itemOnPlayerField));
     if (fieldIndex > -1) {
-      roundActiveFields[fieldIndex] *= -1;
+      roundItems[fieldIndex] *= -1;
       game.addResponseAfterCollect(response);
       playerMeple.collect(fieldIndex === 0 ? GAME_POWER_POINTS : 1, response);
 
