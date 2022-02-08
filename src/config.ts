@@ -8,5 +8,6 @@ export const GAME_ITEMS_PER_ROUND = 4;
 export const GAME_FIELDS = 36;
 export const GAME_POWER_POINTS = 3;
 export const COLLECT_COOLDOWN = 200;
+export const MOVE_MAX_COOLDOWN = 100;
 
 export const GAME_MIN_ROUND_PLAYED_TO_GET_WIN_AFTER_SURRENDER = 5;

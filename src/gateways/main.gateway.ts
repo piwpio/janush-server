@@ -20,7 +20,7 @@ import { GameService } from "../services/game.service";
 import { PlayerOnChair } from "../guards/player-on-chair.guard";
 import { PlayerReadyGuard } from "../guards/player-ready.guard";
 import { PARAM } from "../models/param.model";
-import { COLLECT_COOLDOWN, GAME_FIELDS, GAME_POWER_POINTS } from "../config";
+import { COLLECT_COOLDOWN, GAME_FIELDS, GAME_POWER_POINTS, MOVE_MAX_COOLDOWN } from "../config";
 import { GameNotStarted, GameStarted } from "../guards/game-started.guard";
 import { MeplesService } from "../services/meples.service";
 import { GENERAL_ID, MOVE_DIRECTION } from "../models/types.model";
@@ -136,10 +136,14 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   @SubscribeMessage(GATEWAY.MEPLE_MOVE)
   mepleMove(client: Socket, payload: PayloadMepleMove) {
     const playerId = client.id;
-    const moveDirection = payload[PARAM.MEPLE_MOVE_DIRECTION];
-    const response = new Response();
     const playerChair = this.chairsService.getPlayerChair(playerId);
     const playerMeple = this.meplesService.getMeple(playerChair.id);
+
+    if (playerMeple.lastMoveTs + MOVE_MAX_COOLDOWN > Date.now()) return;
+    playerMeple.lastMoveTs = Date.now();
+
+    const response = new Response();
+    const moveDirection = payload[PARAM.MEPLE_MOVE_DIRECTION];
     const enemyMeple = this.meplesService.getOppositeMeple(playerMeple);
 
     if (moveDirection === MOVE_DIRECTION.ASC) {
@@ -165,8 +169,8 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     //DEBUG
     // const cooldown = playerMeple.lastActionTs + COLLECT_COOLDOWN > Date.now();
-    if (playerMeple.lastActionTs + COLLECT_COOLDOWN > Date.now()) return;
-    playerMeple.lastActionTs = Date.now();
+    if (playerMeple.lastCollectTs + COLLECT_COOLDOWN > Date.now()) return;
+    playerMeple.lastCollectTs = Date.now();
 
     const game = this.gameService.getGame();
     const roundItems = game.roundItems[game.currentRound];
