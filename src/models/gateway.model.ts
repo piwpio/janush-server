@@ -10,6 +10,7 @@ export enum GATEWAY {
   CHAIR_PLAYER_SET_READY = '5',
   MEPLE_MOVE = '6',
   MEPLE_COLLECT = '7',
+  CHAT_MESSAGE = '7',
 }
 
 // export enum GATEWAY {
@@ -21,6 +22,7 @@ export enum GATEWAY {
 //   CHAIR_PLAYER_SET_READY = 'chair_player_set_ready',
 //   MEPLE_MOVE = 'meple_move',
 //   MEPLE_COLLECT = 'meple_collect',
+//   CHAT_MESSAGE = 'chat_message',
 // }
 
 export interface PayloadPlayerRegister {
@@ -33,4 +35,8 @@ export interface PayloadChairPlayerIsReady {
 
 export interface PayloadMepleMove {
   [PARAM.MEPLE_MOVE_DIRECTION]: MOVE_DIRECTION
+}
+
+export interface PayloadChatMessage {
+  [PARAM.CHAT_MESSAGE]: string
 }

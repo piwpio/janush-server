@@ -10,6 +10,7 @@ export class Player {
 
   // properties
   public readonly name = '';
+  public lastChatMessageTs = 0;
   public winCounter = 0;
   public lostCounter = 0;
   public winStreak = 0;

@@ -8,7 +8,8 @@ export type ResponseModel =
   RMTableChange |
   RMChairChange |
   RMGameInit | RMGameUpdate | RMGameEnd | RMGameMepleCollect |
-  RMepleChange;
+  RMepleChange |
+  RMChatChange;
 
 export type ResponseDataType = ResponseDataModel[];
 export type ResponseDataModel =
@@ -16,7 +17,8 @@ export type ResponseDataModel =
   RMTableChangeData |
   RMChairChangeData |
   RMGameInitData | RMGameUpdateData | RMGameEndData | RMGameMepleCollectData |
-  RMepleChangeData;
+  RMepleChangeData |
+  RMChatChangeData
 
 // RESPONSE MODELS
 export interface RMPlayerRegister {
@@ -100,4 +102,13 @@ export interface RMepleChangeData {
   [PARAM.MEPLE_ID]: GENERAL_ID;
   [PARAM.MEPLE_FIELD_INDEX]: number;
   [PARAM.MEPLE_POINTS]: number;
+}
+
+export interface RMChatChange {
+  [PARAM.DATA_TYPE]: DATA_TYPE.CHAT_CHANGE;
+  [PARAM.DATA]: RMChatChangeData;
+}
+export interface RMChatChangeData {
+  [PARAM.CHAT_PLAYER_NAME]: string;
+  [PARAM.CHAT_MESSAGE]: string;
 }

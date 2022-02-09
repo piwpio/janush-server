@@ -3,12 +3,18 @@ import {
   OnGatewayDisconnect,
   OnGatewayInit,
   SubscribeMessage,
-  WebSocketGateway
+  WebSocketGateway, WsException
 } from "@nestjs/websockets";
 import { Socket } from 'socket.io';
 import { PlayersService } from "../services/players.service";
 import { Response } from "../classes/response.class";
-import { GATEWAY, PayloadChairPlayerIsReady, PayloadMepleMove, PayloadPlayerRegister } from "../models/gateway.model";
+import {
+  GATEWAY,
+  PayloadChairPlayerIsReady,
+  PayloadChatMessage,
+  PayloadMepleMove,
+  PayloadPlayerRegister
+} from "../models/gateway.model";
 import { UseGuards } from "@nestjs/common";
 import { PlayerExistsGuard, PlayerNotExistGuard } from "../guards/player-exists.guard";
 import { TableService } from "../services/table.service";
@@ -19,8 +25,15 @@ import { ChairsService } from "../services/chairs.service";
 import { GameService } from "../services/game.service";
 import { PlayerOnChair } from "../guards/player-on-chair.guard";
 import { PlayerReadyGuard } from "../guards/player-ready.guard";
-import { PARAM } from "../models/param.model";
-import { COLLECT_COOLDOWN, GAME_FIELDS, GAME_POWER_POINTS, MOVE_MAX_COOLDOWN } from "../config";
+import { DATA_TYPE, PARAM } from "../models/param.model";
+import {
+  CHAT_COOLDOWN,
+  CHAT_MESSAGE_MAXLENGTH,
+  COLLECT_COOLDOWN,
+  GAME_FIELDS,
+  GAME_POWER_POINTS,
+  MOVE_MAX_COOLDOWN, NAME_MAXLENGTH
+} from "../config";
 import { GameNotStarted, GameStarted } from "../guards/game-started.guard";
 import { MeplesService } from "../services/meples.service";
 import { GENERAL_ID, MOVE_DIRECTION } from "../models/types.model";
@@ -44,9 +57,9 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     player.socket = client;
 
-    // const initDataResponse = new Response();
-    // this.dataService.addInitDataToResponse(initDataResponse);
-    // player.socket.emit(GATEWAY.MAIN, initDataResponse.get());
+    const initDataResponse = new Response();
+    this.dataService.addInitDataToResponse(initDataResponse);
+    player.socket.emit(GATEWAY.MAIN, initDataResponse.get());
 
     const response = new Response();
     player.addResponseAfterRegister(response);
@@ -73,6 +86,9 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   @UseGuards(PlayerLimitGuard, PlayerNotExistGuard)
   @SubscribeMessage(GATEWAY.PLAYER_REGISTER)
   playerRegister(client: Socket, payload: PayloadPlayerRegister) {
+    if (payload[PARAM.PLAYER_NAME]?.length > NAME_MAXLENGTH)
+      throw new WsException('Name too long.');
+
     const newPlayer = this.playersService.registerPlayer(client, payload);
 
     const initDataResponse = new Response();
@@ -202,5 +218,28 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
       response.broadcast();
     }
+  }
+
+  @UseGuards(PlayerExistsGuard)
+  @SubscribeMessage(GATEWAY.CHAT_MESSAGE)
+  chatMessage(client: Socket, payload: PayloadChatMessage) {
+    if (payload[PARAM.CHAT_MESSAGE]?.length > CHAT_MESSAGE_MAXLENGTH)
+      throw new WsException('Message too long.');
+
+    const playerId = client.id;
+    const player = this.playersService.getPlayerById(playerId);
+
+    if (player.lastChatMessageTs + CHAT_COOLDOWN > Date.now()) return;
+    player.lastChatMessageTs = Date.now();
+
+    const response = new Response();
+    response.add({
+      [PARAM.DATA_TYPE]: DATA_TYPE.CHAT_CHANGE,
+      [PARAM.DATA]: {
+        [PARAM.CHAT_PLAYER_NAME]: player.name,
+        [PARAM.CHAT_MESSAGE]: payload[PARAM.CHAT_MESSAGE]
+      }
+    });
+    response.broadcast();
   }
 }

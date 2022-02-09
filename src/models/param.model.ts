@@ -25,7 +25,10 @@ export enum PARAM {
   MEPLE_ID,
   MEPLE_FIELD_INDEX,
   MEPLE_MOVE_DIRECTION,
-  MEPLE_POINTS
+  MEPLE_POINTS,
+  CHAT_PLAYER_NAME,
+  CHAT_MESSAGE,
+
 }
 
 export enum DATA_TYPE {
@@ -38,7 +41,8 @@ export enum DATA_TYPE {
   GAME_UPDATE,
   GAME_END,
   GAME_MEPLE_COLLECT,
-  MEPLE_CHANGE
+  MEPLE_CHANGE,
+  CHAT_CHANGE,
 }
 
 // export enum PARAM {
@@ -74,6 +78,9 @@ export enum DATA_TYPE {
 //   MEPLE_FIELD_INDEX = 'meple_field_index',
 //   MEPLE_MOVE_DIRECTION = 'meple_move_direction',
 //   MEPLE_POINTS = 'meple_points'
+//
+//   CHAT_PLAYER_NAME = 'chat_player_name'
+//   CHAT_MESSAGE = 'chat_message'
 // }
 //
 // export enum DATA_TYPE {
@@ -87,4 +94,5 @@ export enum DATA_TYPE {
 //   GAME_END = 'game_end',
 //   GAME_MEPLE_COLLECT = 'game_meple_collect',
 //   MEPLE_CHANGE = 'meple_change'
+//   CHAT_CHANGE = 'chat_change'
 // }
