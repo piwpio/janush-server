@@ -10,7 +10,7 @@ export enum GATEWAY {
   CHAIR_PLAYER_SET_READY = '5',
   MEPLE_MOVE = '6',
   MEPLE_COLLECT = '7',
-  CHAT_MESSAGE = '7',
+  CHAT_MESSAGE = '8',
 }
 
 // export enum GATEWAY {
