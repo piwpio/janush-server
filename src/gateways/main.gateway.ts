@@ -3,7 +3,7 @@ import {
   OnGatewayDisconnect,
   OnGatewayInit,
   SubscribeMessage,
-  WebSocketGateway, WsException
+  WebSocketGateway
 } from "@nestjs/websockets";
 import { Socket } from 'socket.io';
 import { PlayersService } from "../services/players.service";
@@ -54,9 +54,9 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   handleConnection(client: Socket) {
     const player = this.playersService.getPlayerById(client.id)
 
-    // Can't add guard on connection livecycle events. Added manually.
     if (!player) {
-      throw new WsException('Player is not exist.');
+      console.error('Player is not exist on connection.');
+      return;
     }
 
     player.socket = client;
@@ -74,9 +74,9 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   handleDisconnect(client: Socket) {
     const playerId = client.id;
 
-    // Can't add guard on connection livecycle events. Added manually.
     if (!this.playersService.isPlayerExists(client.id))  {
-      throw new WsException('Player is not exist. No disconnect action.');
+      console.error('Player is not exist. No disconnect action.');
+      return;
     }
 
     const response = new Response();
@@ -162,7 +162,8 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     const playerMeple = this.meplesService.getMeple(playerChair.id);
 
     if (playerMeple.lastMoveTs + MOVE_MAX_COOLDOWN > Date.now()) {
-      throw new WsException('Move action not ready yet.');
+      console.error('Move action not ready yet.');
+      return;
     }
     playerMeple.lastMoveTs = Date.now();
 
@@ -194,14 +195,16 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     const playerMeple = this.meplesService.getMeple(playerChair.id);
 
     if (playerMeple.lastCollectTs + COLLECT_COOLDOWN > Date.now()) {
-      throw new WsException('Collect action not ready yet.');
+      console.error('Collect action not ready yet.');
+      return;
     }
     playerMeple.lastCollectTs = Date.now();
 
     const game = this.gameService.getGame();
     const roundItems = game.roundItems[game.currentRound];
     if (!roundItems) {
-      throw new WsException('No round items.');
+      console.error('No round items.');
+      return;
     }
 
     const fieldsMap = game.gameFieldsMap;
@@ -232,7 +235,8 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     const player = this.playersService.getPlayerById(playerId);
 
     if (player.lastChatMessageTs + CHAT_COOLDOWN > Date.now()){
-      throw new WsException('Wow, you are sending messages so fast! Slow down :)');
+      console.error('Wow, you are sending messages so fast! Slow down :)');
+      return;
     }
     player.lastChatMessageTs = Date.now();
 
