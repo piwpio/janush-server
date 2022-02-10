@@ -45,13 +45,15 @@ export class TableService {
         const winnerChair = this.chairsService.getOppositeChair(playerChair);
         winnerChair.setReady(false, response);
 
-        const winnerPlayer = this.playersService.getPlayerById(winnerChair.playerId)
+        const winnerPlayer = this.playersService.getPlayerById(winnerChair.playerId);
+        const loserPlayer = this.playersService.getPlayerById(playerId);
+
         if (game.currentRound >= GAME_MIN_ROUND_PLAYED_TO_GET_WIN_AFTER_SURRENDER) {
           ++winnerPlayer.maxWinStreak;
         }
 
         const winnerPlayerData = winnerPlayer.getDataForEndGame();
-        const loserPlayerData = winnerPlayer.getDataForEndGame();
+        const loserPlayerData = loserPlayer.getDataForEndGame();
         const endGameResponse = game.getEndResponse(winnerPlayerData, loserPlayerData)
         response.add(endGameResponse);
 

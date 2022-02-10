@@ -55,7 +55,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     const player = this.playersService.getPlayerById(client.id)
 
     if (!player) {
-      console.error('Player is not exist on connection.');
+      // console.error('Player is not exist on connection.');
       return;
     }
 
@@ -75,7 +75,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     const playerId = client.id;
 
     if (!this.playersService.isPlayerExists(client.id))  {
-      console.error('Player is not exist. No disconnect action.');
+      // console.error('Player is not exist. No disconnect action.');
       return;
     }
 
@@ -162,7 +162,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     const playerMeple = this.meplesService.getMeple(playerChair.id);
 
     if (playerMeple.lastMoveTs + MOVE_MAX_COOLDOWN > Date.now()) {
-      console.error('Move action not ready yet.');
+      // console.error('Move action not ready yet.');
       return;
     }
     playerMeple.lastMoveTs = Date.now();
@@ -195,7 +195,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     const playerMeple = this.meplesService.getMeple(playerChair.id);
 
     if (playerMeple.lastCollectTs + COLLECT_COOLDOWN > Date.now()) {
-      console.error('Collect action not ready yet.');
+      // console.error('Collect action not ready yet.');
       return;
     }
     playerMeple.lastCollectTs = Date.now();
@@ -203,17 +203,14 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     const game = this.gameService.getGame();
     const roundItems = game.roundItems[game.currentRound];
     if (!roundItems) {
-      console.error('No round items.');
+      // console.error('No round items.');
       return;
     }
 
     const fieldsMap = game.gameFieldsMap;
     const itemOnPlayerField = fieldsMap[playerMeple.fieldIndex];
 
-    // Object.is() is for comparing zeros ex:
-    // 0 === -0 // true
-    // Object.is(0, -0) // false
-    const fieldIndex = roundItems.findIndex(item => Object.is(item, itemOnPlayerField));
+    const fieldIndex = roundItems.findIndex(item => item === itemOnPlayerField);
     if (fieldIndex > -1) {
       const response = new Response();
 
@@ -235,7 +232,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     const player = this.playersService.getPlayerById(playerId);
 
     if (player.lastChatMessageTs + CHAT_COOLDOWN > Date.now()){
-      console.error('Wow, you are sending messages so fast! Slow down :)');
+      // // console.error('Wow, you are sending messages so fast! Slow down :)');
       return;
     }
     player.lastChatMessageTs = Date.now();

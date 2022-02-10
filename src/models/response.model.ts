@@ -62,6 +62,7 @@ export interface RMGameInitData {
   [PARAM.GAME_START_TS]: number;
   [PARAM.GAME_IS_ON]: boolean;
   [PARAM.GAME_FIELDS]: number[];
+  [PARAM.GAME_ROUND_ITEMS]: number[];
   [PARAM.GAME_PLAYERS]: PlayerData[];
 }
 

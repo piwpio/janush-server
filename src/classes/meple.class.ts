@@ -30,9 +30,9 @@ export class Meple {
   }
 
   setAfterGameEnds(): void {
-    this.points = 0;
-    this.lastCollectTs = 0;
-    this.lastMoveTs = 0;
+    // this.points = 0;
+    // this.lastCollectTs = 0;
+    // this.lastMoveTs = 0;
   }
 
   addResponse(response: Response): void {

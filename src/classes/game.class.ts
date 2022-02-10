@@ -44,6 +44,8 @@ export class Game {
     if (this.currentRound < GAME_ROUNDS) {
       this.updateRound();
     } else {
+      // Set current round as max index for round items (for new players preview)
+      this.currentRound = GAME_ROUNDS - 1;
       this.gameEnd();
     }
   }
@@ -125,16 +127,17 @@ export class Game {
   resetGame(): void {
     clearTimeout(this.timeoutId);
 
+    // this.gameFieldsMap = [];
+    // this.roundItems = [];
+    // this.currentRound = -1;
     this.isGameStarted = false;
-    this.currentRound = -1;
-    this.roundItems = [];
     this.gameStartTs = 0;
     this.timeoutId = null;
     this.nextUpdateTs = null;
   }
 
   private randomizeGameVariables(): void {
-    const array = Array.from({ length: GAME_FIELDS }, (v,k) => k);
+    const array = Array.from({ length: GAME_FIELDS }, (_, index) => index + 1);
     this.gameFieldsMap = [...array].sort(() => 0.5 - Math.random());
 
     for (let round = 0; round < GAME_ROUNDS; round++) {
@@ -155,6 +158,7 @@ export class Game {
         [PARAM.GAME_START_TS]: this.gameStartTs,
         [PARAM.GAME_IS_ON]: this.isGameStarted,
         [PARAM.GAME_FIELDS]: this.gameFieldsMap,
+        [PARAM.GAME_ROUND_ITEMS]: this.currentRound > -1 ? this.roundItems[this.currentRound] : [],
         [PARAM.GAME_PLAYERS]: [
           playersService.getPlayerById(player1Id)?.getDataForQueue(),
           playersService.getPlayerById(player2Id)?.getDataForQueue()
@@ -185,7 +189,7 @@ export class Game {
       [PARAM.DATA_TYPE]: DATA_TYPE.GAME_UPDATE,
       [PARAM.DATA]: {
         [PARAM.GAME_ROUND]: this.currentRound,
-        [PARAM.GAME_ROUND_ITEMS]: this.roundItems[this.currentRound],
+        [PARAM.GAME_ROUND_ITEMS]: this.currentRound > -1 ? this.roundItems[this.currentRound] : [],
         [PARAM.GAME_NEXT_UPDATE_TS]: this.nextUpdateTs
       }
     }
@@ -199,7 +203,7 @@ export class Game {
     return {
       [PARAM.DATA_TYPE]: DATA_TYPE.GAME_MEPLE_COLLECT,
       [PARAM.DATA]: {
-        [PARAM.GAME_ROUND_ITEMS]: this.roundItems[this.currentRound],
+        [PARAM.GAME_ROUND_ITEMS]: this.currentRound > -1 ? this.roundItems[this.currentRound] : [],
       }
     }
   }
