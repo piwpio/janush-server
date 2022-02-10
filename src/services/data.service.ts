@@ -6,6 +6,7 @@ import { ChairsService } from "./chairs.service";
 import { GENERAL_ID } from "../models/types.model";
 import { MeplesService } from "./meples.service";
 import { GameService } from "./game.service";
+import { ChatService } from "./chat.service";
 
 @Injectable()
 export class DataService {
@@ -15,6 +16,7 @@ export class DataService {
     private chairsService: ChairsService,
     private meplesService: MeplesService,
     private gameService: GameService,
+    private chatService: ChatService
   ) {}
 
   addInitDataToResponse(response: Response): void {
@@ -24,5 +26,6 @@ export class DataService {
     response.add(this.gameService.getGame().getInitResponse());
     response.add(this.meplesService.getMeple(GENERAL_ID.ID1).getResponse());
     response.add(this.meplesService.getMeple(GENERAL_ID.ID2).getResponse());
+    response.add(this.chatService.getChatInitResponse());
   }
 }

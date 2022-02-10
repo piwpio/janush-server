@@ -37,6 +37,7 @@ import { GameNotStarted, GameStarted } from "../guards/game-started.guard";
 import { MeplesService } from "../services/meples.service";
 import { GENERAL_ID, MOVE_DIRECTION } from "../models/types.model";
 import { ChatMessageGuard, PlayerNameGuard } from "../guards/string.guard";
+import { ChatService } from "../services/chat.service";
 
 @WebSocketGateway(8080, { cors: true })
 export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
@@ -47,6 +48,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     private meplesService: MeplesService,
     private gameService: GameService,
     private dataService: DataService,
+    private chatService: ChatService
   ) {}
 
   afterInit() {}
@@ -67,6 +69,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     const response = new Response();
     player.addResponseAfterRegister(response);
+    this.chatService.addMessageToResponse(response, `${player.name} joined`);
 
     response.broadcast();
   }
@@ -74,7 +77,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   handleDisconnect(client: Socket) {
     const playerId = client.id;
 
-    if (!this.playersService.isPlayerExists(client.id))  {
+    if (!this.playersService.isPlayerExists(playerId))  {
       // console.error('Player is not exist. No disconnect action.');
       return;
     }
@@ -82,11 +85,12 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     const response = new Response();
 
     if (this.chairsService.isPlayerOnChair(playerId) || this.tableService.isPlayerInQueue(playerId)) {
-      this.tableService.tableStandFromLogic(client.id, response);
+      this.tableService.tableStandFromLogic(playerId, response);
     }
 
-    const unregisteredPlayer = this.playersService.unregisterPlayerById(client.id);
+    const unregisteredPlayer = this.playersService.unregisterPlayerById(playerId);
     unregisteredPlayer.addResponseAfterUnRegister(response);
+    this.chatService.addMessageToResponse(response, `${unregisteredPlayer.name} disconnected`);
 
     response.broadcast();
   }
@@ -102,6 +106,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     const broadcastResponse = new Response();
     newPlayer.addResponseAfterRegister(broadcastResponse);
+    this.chatService.addMessageToResponse(broadcastResponse, `${newPlayer.name} joined`);
 
     broadcastResponse.broadcast();
   }
@@ -232,19 +237,13 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     const player = this.playersService.getPlayerById(playerId);
 
     if (player.lastChatMessageTs + CHAT_COOLDOWN > Date.now()){
-      // // console.error('Wow, you are sending messages so fast! Slow down :)');
+      // console.error('Wow, you are sending messages so fast! Slow down :)');
       return;
     }
     player.lastChatMessageTs = Date.now();
 
     const response = new Response();
-    response.add({
-      [PARAM.DATA_TYPE]: DATA_TYPE.CHAT_CHANGE,
-      [PARAM.DATA]: {
-        [PARAM.CHAT_PLAYER_NAME]: player.name,
-        [PARAM.CHAT_MESSAGE]: payload[PARAM.CHAT_MESSAGE]
-      }
-    });
+    this.chatService.addMessageToResponse(response, payload[PARAM.CHAT_MESSAGE], player.name);
 
     response.broadcast();
   }

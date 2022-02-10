@@ -8,6 +8,7 @@ import { DataService } from "./services/data.service";
 import { ChairsService } from "./services/chairs.service";
 import { GameService } from "./services/game.service";
 import { MeplesService } from "./services/meples.service";
+import { ChatService } from "./services/chat.service";
 
 @Module({
   imports: [],
@@ -21,6 +22,7 @@ import { MeplesService } from "./services/meples.service";
     DataService,
     SocketService,
     DataService,
+    ChatService,
     MainGateway
   ],
 })

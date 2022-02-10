@@ -43,6 +43,10 @@ export class PlayersService {
     return this.players.find(player => player.id === playerId);
   }
 
+  getPlayerByName(name: string): Player {
+    return this.players.find(player => player.name.toLowerCase() === name.toLowerCase());
+  }
+
   getPlayersDataForInit(): PlayerFullData[] {
     const playersData = [];
     this.players.forEach(player => {
