@@ -15,7 +15,7 @@ export class GameStarted implements CanActivate {
     if (this.gameService.isGameStarted()) {
       return true;
     } else {
-      throw new WsException('Game not started');
+      throw new WsException('Game not started.');
     }
   }
 }
@@ -32,7 +32,7 @@ export class GameNotStarted implements CanActivate {
     if (!this.gameService.isGameStarted()) {
       return true;
     } else {
-      throw new WsException('Game not started');
+      throw new WsException('Game not started.');
     }
   }
 }

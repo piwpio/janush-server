@@ -14,7 +14,7 @@ export class Table {
   }
 
   isPlayerInQueue(playerId: PlayerId): boolean {
-    return this.queue.some(queueUserId => queueUserId === playerId)
+    return this.queue.some(queuePlayerId => queuePlayerId === playerId)
   }
 
   addToQueue(playerId: PlayerId, response: Response): void {

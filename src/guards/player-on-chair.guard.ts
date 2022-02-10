@@ -4,7 +4,7 @@ import { WsException } from "@nestjs/websockets";
 import { ChairsService } from "../services/chairs.service";
 
 @Injectable()
-export class PlayerOnChair implements CanActivate {
+export class PlayerOnChairGuard implements CanActivate {
   constructor(
     private chairsService: ChairsService
   ) {}
@@ -16,13 +16,13 @@ export class PlayerOnChair implements CanActivate {
     if (this.chairsService.isPlayerOnChair(client.id)) {
       return true;
     } else {
-      throw new WsException('User is not on chair');
+      throw new WsException('Player is not on chair.');
     }
   }
 }
 
 @Injectable()
-export class PlayerNotOnChair implements CanActivate {
+export class PlayerNotOnChairGuard implements CanActivate {
   constructor(
     private chairsService: ChairsService
   ) {}
@@ -34,7 +34,7 @@ export class PlayerNotOnChair implements CanActivate {
     if (!this.chairsService.isPlayerOnChair(client.id)) {
       return true;
     } else {
-      throw new WsException('User is sitting on chair already');
+      throw new WsException('Player is sitting on chair already.');
     }
   }
 }

@@ -16,7 +16,7 @@ export class PlayerExistsGuard implements CanActivate {
     if (this.playersService.isPlayerExists(client.id)) {
       return true;
     } else {
-      throw new WsException('User is not exist');
+      throw new WsException('Player is not exist.');
     }
   }
 }
@@ -34,7 +34,7 @@ export class PlayerNotExistGuard implements CanActivate {
     if (!this.playersService.isPlayerExists(client.id)) {
       return true;
     } else {
-      throw new WsException('User already exist');
+      throw new WsException('Player already exist.');
     }
   }
 }

@@ -8,8 +8,8 @@ import { ChairsService } from "../services/chairs.service";
 export class PlayerReadyGuard implements CanActivate {
   constructor(
     private chairsService: ChairsService
-  ) {
-  }
+  ) {}
+
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
@@ -18,7 +18,7 @@ export class PlayerReadyGuard implements CanActivate {
     if (this.chairsService.isPlayerReady(client.id) !== isReady) {
       return true;
     } else {
-      throw new WsException('User already ready/not ready');
+      throw new WsException('Player already ready/not ready.');
     }
   }
 }

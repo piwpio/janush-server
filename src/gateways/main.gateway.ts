@@ -18,25 +18,25 @@ import {
 import { UseGuards } from "@nestjs/common";
 import { PlayerExistsGuard, PlayerNotExistGuard } from "../guards/player-exists.guard";
 import { TableService } from "../services/table.service";
-import { PlayerNotOnTable, PlayerOnTable } from "../guards/player-on-table.guard";
+import { PlayerNotOnTableGuard, PlayerOnTableGuard } from "../guards/player-on-table.guard";
 import { PlayerLimitGuard } from "../guards/player-limit.guard";
 import { DataService } from "../services/data.service";
 import { ChairsService } from "../services/chairs.service";
 import { GameService } from "../services/game.service";
-import { PlayerOnChair } from "../guards/player-on-chair.guard";
+import { PlayerOnChairGuard } from "../guards/player-on-chair.guard";
 import { PlayerReadyGuard } from "../guards/player-ready.guard";
 import { DATA_TYPE, PARAM } from "../models/param.model";
 import {
   CHAT_COOLDOWN,
-  CHAT_MESSAGE_MAXLENGTH,
   COLLECT_COOLDOWN,
   GAME_FIELDS,
   GAME_POWER_POINTS,
-  MOVE_MAX_COOLDOWN, NAME_MAXLENGTH
+  MOVE_MAX_COOLDOWN
 } from "../config";
 import { GameNotStarted, GameStarted } from "../guards/game-started.guard";
 import { MeplesService } from "../services/meples.service";
 import { GENERAL_ID, MOVE_DIRECTION } from "../models/types.model";
+import { ChatMessageGuard, PlayerNameGuard } from "../guards/string.guard";
 
 @WebSocketGateway(8080, { cors: true })
 export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
@@ -53,7 +53,11 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
   handleConnection(client: Socket) {
     const player = this.playersService.getPlayerById(client.id)
-    if (!player) return;
+
+    // Can't add guard on connection livecycle events. Added manually.
+    if (!player) {
+      throw new WsException('Player is not exist.');
+    }
 
     player.socket = client;
 
@@ -63,13 +67,17 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     const response = new Response();
     player.addResponseAfterRegister(response);
+
     response.broadcast();
   }
 
   handleDisconnect(client: Socket) {
     const playerId = client.id;
 
-    if (!this.playersService.isPlayerExists(client.id)) return;
+    // Can't add guard on connection livecycle events. Added manually.
+    if (!this.playersService.isPlayerExists(client.id))  {
+      throw new WsException('Player is not exist. No disconnect action.');
+    }
 
     const response = new Response();
 
@@ -83,12 +91,9 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     response.broadcast();
   }
 
-  @UseGuards(PlayerLimitGuard, PlayerNotExistGuard)
+  @UseGuards(PlayerLimitGuard, PlayerNotExistGuard, PlayerNameGuard)
   @SubscribeMessage(GATEWAY.PLAYER_REGISTER)
   playerRegister(client: Socket, payload: PayloadPlayerRegister) {
-    if (payload[PARAM.PLAYER_NAME]?.length > NAME_MAXLENGTH)
-      throw new WsException('Name too long.');
-
     const newPlayer = this.playersService.registerPlayer(client, payload);
 
     const initDataResponse = new Response();
@@ -97,10 +102,11 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     const broadcastResponse = new Response();
     newPlayer.addResponseAfterRegister(broadcastResponse);
+
     broadcastResponse.broadcast();
   }
 
-  @UseGuards(PlayerExistsGuard, PlayerNotOnTable)
+  @UseGuards(PlayerExistsGuard, PlayerNotOnTableGuard)
   @SubscribeMessage(GATEWAY.TABLE_SIT_TO)
   tableSitTo(client: Socket) {
     const playerId = client.id
@@ -120,7 +126,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     response.broadcast();
   }
 
-  @UseGuards(PlayerExistsGuard, PlayerOnTable)
+  @UseGuards(PlayerExistsGuard, PlayerOnTableGuard)
   @SubscribeMessage(GATEWAY.TABLE_STAND_FROM)
   tableStandFrom(client: Socket) {
     const response = new Response();
@@ -129,7 +135,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     response.broadcast();
   }
 
-  @UseGuards(GameNotStarted, PlayerExistsGuard, PlayerOnChair, PlayerReadyGuard)
+  @UseGuards(GameNotStarted, PlayerExistsGuard, PlayerOnChairGuard, PlayerReadyGuard)
   @SubscribeMessage(GATEWAY.CHAIR_PLAYER_SET_READY)
   chairPlayerSetReady(client: Socket, payload: PayloadChairPlayerIsReady) {
     const playerId = client.id;
@@ -148,14 +154,16 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     response.broadcast();
   }
 
-  @UseGuards(PlayerExistsGuard, PlayerOnChair, GameStarted)
+  @UseGuards(PlayerExistsGuard, PlayerOnChairGuard, GameStarted)
   @SubscribeMessage(GATEWAY.MEPLE_MOVE)
   mepleMove(client: Socket, payload: PayloadMepleMove) {
     const playerId = client.id;
     const playerChair = this.chairsService.getPlayerChair(playerId);
     const playerMeple = this.meplesService.getMeple(playerChair.id);
 
-    if (playerMeple.lastMoveTs + MOVE_MAX_COOLDOWN > Date.now()) return;
+    if (playerMeple.lastMoveTs + MOVE_MAX_COOLDOWN > Date.now()) {
+      throw new WsException('Move action not ready yet.');
+    }
     playerMeple.lastMoveTs = Date.now();
 
     const response = new Response();
@@ -165,9 +173,11 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     if (moveDirection === MOVE_DIRECTION.ASC) {
       ++playerMeple.fieldIndex;
       if (playerMeple.fieldIndex >= GAME_FIELDS) playerMeple.fieldIndex = 0;
+      // Players cannot be on the same fields. Skip this field for player
       if (enemyMeple.fieldIndex === playerMeple.fieldIndex) ++playerMeple.fieldIndex;
     } else {
       --playerMeple.fieldIndex;
+      // Players cannot be on the same fields. Skip this field for player
       if (enemyMeple.fieldIndex === playerMeple.fieldIndex) --playerMeple.fieldIndex;
       if (playerMeple.fieldIndex < 0) playerMeple.fieldIndex = GAME_FIELDS - 1;
     }
@@ -176,21 +186,23 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     response.broadcast();
   }
 
-  @UseGuards(PlayerExistsGuard, PlayerOnChair, GameStarted)
+  @UseGuards(PlayerExistsGuard, PlayerOnChairGuard, GameStarted)
   @SubscribeMessage(GATEWAY.MEPLE_COLLECT)
   mepleCollect(client: Socket) {
     const playerId = client.id;
     const playerChair = this.chairsService.getPlayerChair(playerId);
     const playerMeple = this.meplesService.getMeple(playerChair.id);
 
-    //DEBUG
-    // const cooldown = playerMeple.lastActionTs + COLLECT_COOLDOWN > Date.now();
-    if (playerMeple.lastCollectTs + COLLECT_COOLDOWN > Date.now()) return;
+    if (playerMeple.lastCollectTs + COLLECT_COOLDOWN > Date.now()) {
+      throw new WsException('Collect action not ready yet.');
+    }
     playerMeple.lastCollectTs = Date.now();
 
     const game = this.gameService.getGame();
     const roundItems = game.roundItems[game.currentRound];
-    if (!roundItems) return;
+    if (!roundItems) {
+      throw new WsException('No round items.');
+    }
 
     const fieldsMap = game.gameFieldsMap;
     const itemOnPlayerField = fieldsMap[playerMeple.fieldIndex];
@@ -199,19 +211,12 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     // 0 === -0 // true
     // Object.is(0, -0) // false
     const fieldIndex = roundItems.findIndex(item => Object.is(item, itemOnPlayerField));
-
-    // DEBUG
-    // console.log('##########################################')
-    // console.log('Player fieldIndex', playerMeple.fieldIndex)
-    // console.log('Item on player field', itemOnPlayerField)
-    // console.log('Round items', roundItems)
-    // console.log('Found?', fieldIndex > -1)
-    // console.log('Cooldown', cooldown)
-    // if (cooldown) return;
-
     if (fieldIndex > -1) {
       const response = new Response();
 
+      // Mark collected item as negative. Ex:
+      // 4 is item id, not collected
+      // -4 is item id with collected flag
       roundItems[fieldIndex] *= -1;
       game.addResponseAfterCollect(response);
       playerMeple.collect(fieldIndex === 0 ? GAME_POWER_POINTS : 1, response);
@@ -220,16 +225,15 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     }
   }
 
-  @UseGuards(PlayerExistsGuard)
+  @UseGuards(PlayerExistsGuard, ChatMessageGuard)
   @SubscribeMessage(GATEWAY.CHAT_MESSAGE)
   chatMessage(client: Socket, payload: PayloadChatMessage) {
-    if (payload[PARAM.CHAT_MESSAGE]?.length > CHAT_MESSAGE_MAXLENGTH)
-      throw new WsException('Message too long.');
-
     const playerId = client.id;
     const player = this.playersService.getPlayerById(playerId);
 
-    if (player.lastChatMessageTs + CHAT_COOLDOWN > Date.now()) return;
+    if (player.lastChatMessageTs + CHAT_COOLDOWN > Date.now()){
+      throw new WsException('Wow, you are sending messages so fast! Slow down :)');
+    }
     player.lastChatMessageTs = Date.now();
 
     const response = new Response();
@@ -240,6 +244,7 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         [PARAM.CHAT_MESSAGE]: payload[PARAM.CHAT_MESSAGE]
       }
     });
+
     response.broadcast();
   }
 }

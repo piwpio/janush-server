@@ -5,7 +5,7 @@ import { TableService } from "../services/table.service";
 import { ChairsService } from "../services/chairs.service";
 
 @Injectable()
-export class PlayerOnTable implements CanActivate {
+export class PlayerOnTableGuard implements CanActivate {
   constructor(
     private tableService: TableService,
     private chairsService: ChairsService
@@ -18,13 +18,13 @@ export class PlayerOnTable implements CanActivate {
     if (this.chairsService.isPlayerOnChair(client.id) || this.tableService.isPlayerInQueue(client.id)) {
       return true;
     } else {
-      throw new WsException('User is not on table');
+      throw new WsException('Player is not on table.');
     }
   }
 }
 
 @Injectable()
-export class PlayerNotOnTable implements CanActivate {
+export class PlayerNotOnTableGuard implements CanActivate {
   constructor(
     private tableService: TableService,
     private chairsService: ChairsService
@@ -37,7 +37,7 @@ export class PlayerNotOnTable implements CanActivate {
     if (!(this.chairsService.isPlayerOnChair(client.id) || this.tableService.isPlayerInQueue(client.id))) {
       return true;
     } else {
-      throw new WsException('User is sitting on table already');
+      throw new WsException('Player is sitting on table already.');
     }
   }
 }
