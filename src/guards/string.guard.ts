@@ -13,8 +13,8 @@ export class ChatMessageGuard implements CanActivate {
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
-    let message = context.getArgs()[1][PARAM.CHAT_MESSAGE];
-    if (message?.length <= CHAT_MESSAGE_MAXLENGTH) {
+    const message = context.getArgs()[1][PARAM.CHAT_MESSAGE];
+    if (message && message?.length <= CHAT_MESSAGE_MAXLENGTH) {
       return true;
     } else {
       throw new WsException('Chat message too long.');
@@ -31,11 +31,11 @@ export class PlayerNameGuard implements CanActivate {
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
-    let name = context.getArgs()[1][PARAM.PLAYER_NAME];
+    const name = context.getArgs()[1][PARAM.PLAYER_NAME];
     const nameLengthValid = name?.length <= NAME_MAXLENGTH;
     const nameNotSystemValid = name.toLowerCase() !== CHAT_SYSTEM.toLowerCase();
     const nameNotExists = !this.playersService.getPlayerByName(name);
-    if (nameLengthValid && nameNotSystemValid && nameNotExists) {
+    if (name && nameLengthValid && nameNotSystemValid && nameNotExists) {
       return true;
     } else {
       throw new WsException('Player wrong name.');
